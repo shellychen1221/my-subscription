@@ -3,313 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSub Pro - 智能訂閱管理平台</title>
+    <title>VibeSub Pro - Intelligent Subscription Management</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Outfit', -apple-system, sans-serif;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-        }
-        
-        /* Glass Morphism Cards */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Dark Mode Styles */
-        .dark-mode {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-        }
-        
-        .dark-mode .glass-card {
-            background: rgba(30, 30, 46, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .dark-mode input, 
-        .dark-mode select, 
-        .dark-mode textarea {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
-        }
-        
-        .dark-mode input:focus, 
-        .dark-mode select:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #667eea;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', -apple-system, sans-serif; transition: all 0.4s ease; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+        .dark-mode { background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); }
+        .dark-mode .glass-card { background: rgba(30, 30, 46, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); }
         .dark-mode .text-gray-800 { color: #f0f0f0 !important; }
         .dark-mode .text-gray-600 { color: #b0b0b0 !important; }
-        .dark-mode .text-gray-500 { color: #909090 !important; }
-        .dark-mode .text-gray-400 { color: #707070 !important; }
-        .dark-mode .divide-gray-100 { border-color: rgba(255, 255, 255, 0.05) !important; }
-        .dark-mode tr:hover { background: rgba(255, 255, 255, 0.03) !important; }
-        
-        /* Gradient Backgrounds */
-        .gradient-primary {
-            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-        }
-        
-        .gradient-success {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        }
-        
-        .gradient-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-        }
-        
-        .gradient-info {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .animate-fade-in {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
-        
-        .animate-slide-in {
-            animation: slideInRight 0.6s ease-out forwards;
-        }
-        
-        .stat-card {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
-        
-        .stat-card:nth-child(2) { animation-delay: 0.1s; }
-        .stat-card:nth-child(3) { animation-delay: 0.2s; }
-        .stat-card:nth-child(4) { animation-delay: 0.3s; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-            border-radius: 10px;
-        }
-        
-        /* Button Styles */
-        .btn-primary {
-            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
-        }
-        
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn-primary:hover::before {
-            left: 100%;
-        }
-        
-        /* Badge Styles */
-        .badge {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        /* Table Styles */
-        table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        
-        tbody tr {
-            transition: all 0.2s ease;
-        }
-        
-        tbody tr:hover {
-            background: rgba(14, 165, 233, 0.05);
-        }
-        
-        /* Status Indicators */
-        .status-active {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-warning {
-            width: 8px;
-            height: 8px;
-            background: #f59e0b;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 2s infinite;
-        }
-        
-        /* Input Focus */
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
-        
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid rgba(14, 165, 233, 0.1);
-            border-top: 3px solid #0ea5e9;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Notification Badge */
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 700;
-            animation: pulse 2s infinite;
-        }
-        
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 280px;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .glass-card {
-                border-radius: 16px;
-            }
-            
-            .stat-card h2 {
-                font-size: 24px !important;
-            }
-        }
+        .gradient-primary { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); }
+        .btn-primary { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4); }
+        .status-active { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; }
+        .status-warning { width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body id="body-main">
 
-    <!-- Auth Section -->
     <div id="auth-section" class="min-h-screen flex items-center justify-center p-4">
-        <div class="glass-card p-8 md:p-12 max-w-md w-full text-center animate-fade-in">
-            <!-- Language Selector on Auth Page -->
+        <div class="glass-card p-8 md:p-12 max-w-md w-full text-center">
             <div class="flex justify-end mb-6">
-                <select id="auth-lang-selector" onchange="changeAuthLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer">
+                <select id="auth-lang-selector" onchange="changeAuthLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer outline-none">
                     <option value="zh-TW">繁體中文</option>
-                    <option value="zh-CN">简体中文</option>
                     <option value="en">English</option>
-                    <option value="ja">日本語</option>
-                    <option value="ko">한국어</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                    <option value="pt">Português</option>
-                    <option value="vi">Tiếng Việt</option>
-                    <option value="th">ภาษาไทย</option>
                 </select>
             </div>
-            
             <div class="mb-6">
-                <div class="w-20 h-20 mx-auto mb-4 gradient-primary rounded-3xl flex items-center justify-center text-4xl">
-                    💎
-                </div>
-                <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent" id="auth-title">
-                    VibeSub Pro
-                </h1>
+                <div class="w-20 h-20 mx-auto mb-4 gradient-primary rounded-3xl flex items-center justify-center text-4xl">💎</div>
+                <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">VibeSub Pro</h1>
                 <p class="text-gray-600 dark:text-gray-400 text-lg" id="auth-subtitle">智能管理你的每一筆訂閱</p>
             </div>
-            
-            <button onclick="login()" class="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 py-4 px-6 rounded-2xl hover:shadow-xl transition-all font-semibold text-gray-700 dark:text-gray-200 group">
-                <svg class="w-6 h-6 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+            <button onclick="login()" class="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 py-4 px-6 rounded-2xl hover:shadow-xl transition-all font-semibold text-gray-700 dark:text-gray-200">
+                <svg class="w-6 h-6" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -317,199 +48,108 @@
                 </svg>
                 <span id="login-btn-text">使用 Google 帳號登入</span>
             </button>
-            
             <p class="text-xs text-gray-400 mt-6" id="auth-footer">安全、快速、無廣告</p>
         </div>
     </div>
 
-    <!-- Dashboard Section -->
     <div id="dashboard-section" class="hidden min-h-screen p-4 md:p-8">
         <div class="max-w-7xl mx-auto">
-            
-            <!-- Header -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div class="animate-fade-in">
-                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2" id="welcome-text">
-                        歡迎回來 👋
-                    </h1>
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2" id="welcome-text">歡迎回來 👋</h1>
                     <span id="user-email" class="text-white/70 text-sm"></span>
                 </div>
-                
-                <div class="flex gap-3 animate-slide-in">
-                    <button onclick="toggleDarkMode()" class="glass-card p-3 hover:scale-105 transition-transform">
-                        <span id="theme-icon">🌙</span>
-                    </button>
-                    <select id="lang-selector" onchange="changeLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer">
+                <div class="flex gap-3">
+                    <button onclick="toggleDarkMode()" class="glass-card p-3 hover:scale-105 transition-transform"><span id="theme-icon">🌙</span></button>
+                    <select id="lang-selector" onchange="changeLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer outline-none">
                         <option value="zh-TW">繁體中文</option>
-                        <option value="zh-CN">简体中文</option>
                         <option value="en">English</option>
-                        <option value="ja">日本語</option>
-                        <option value="ko">한국어</option>
-                        <option value="es">Español</option>
-                        <option value="fr">Français</option>
-                        <option value="de">Deutsch</option>
-                        <option value="pt">Português</option>
-                        <option value="vi">Tiếng Việt</option>
-                        <option value="th">ภาษาไทย</option>
                     </select>
-                    <button onclick="logout()" class="glass-card px-6 py-2 text-red-500 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition" id="logout-btn">
-                        登出
-                    </button>
+                    <button onclick="logout()" class="glass-card px-6 py-2 text-red-500 font-semibold hover:bg-red-50" id="logout-btn">登出</button>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="glass-card p-6 gradient-primary text-white stat-card relative overflow-hidden">
-                    <div class="absolute top-0 right-0 text-8xl opacity-10">💰</div>
-                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-monthly">每月總支出</p>
-                    <h2 id="total-monthly" class="text-3xl md:text-4xl font-bold">NT$ 0</h2>
-                    <p class="text-white/70 text-xs mt-2">已轉換為台幣</p>
+                <div class="glass-card p-6 gradient-primary text-white">
+                    <p class="text-sm font-medium mb-2" id="stat-monthly">每月總支出</p>
+                    <h2 id="total-monthly" class="text-3xl font-bold">NT$ 0</h2>
                 </div>
-                
-                <div class="glass-card p-6 gradient-success text-white stat-card relative overflow-hidden">
-                    <div class="absolute top-0 right-0 text-8xl opacity-10">📈</div>
-                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-yearly">年度累積預算</p>
-                    <h2 id="total-yearly" class="text-3xl md:text-4xl font-bold">NT$ 0</h2>
-                    <p class="text-white/70 text-xs mt-2">12個月預估</p>
+                <div class="glass-card p-6 bg-emerald-600 text-white">
+                    <p class="text-sm font-medium mb-2" id="stat-yearly">年度累積預算</p>
+                    <h2 id="total-yearly" class="text-3xl font-bold">NT$ 0</h2>
                 </div>
-                
-                <div class="glass-card p-6 gradient-warning text-white stat-card relative overflow-hidden">
-                    <div class="absolute top-0 right-0 text-8xl opacity-10">⚡</div>
-                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-active">啟用中服務</p>
-                    <h2 id="sub-count" class="text-3xl md:text-4xl font-bold">0</h2>
-                    <p class="text-white/70 text-xs mt-2">訂閱管理中</p>
+                <div class="glass-card p-6 bg-amber-500 text-white">
+                    <p class="text-sm font-medium mb-2" id="stat-active">啟用中服務</p>
+                    <h2 id="sub-count" class="text-3xl font-bold">0</h2>
                 </div>
-                
-                <div class="glass-card p-6 gradient-info text-white stat-card relative overflow-hidden">
-                    <div class="absolute top-0 right-0 text-8xl opacity-10">🔔</div>
-                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-upcoming">即將扣款</p>
-                    <h2 id="upcoming-count" class="text-3xl md:text-4xl font-bold">0</h2>
-                    <p class="text-white/70 text-xs mt-2">7天內到期</p>
+                <div class="glass-card p-6 bg-indigo-500 text-white">
+                    <p class="text-sm font-medium mb-2" id="stat-upcoming">即將扣款</p>
+                    <h2 id="upcoming-count" class="text-3xl font-bold">0</h2>
                 </div>
             </div>
 
-            <!-- Main Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Left Column -->
                 <div class="lg:col-span-2 space-y-6">
-                    
-                    <!-- Add Subscription Form -->
-                    <div class="glass-card p-6 md:p-8 animate-fade-in">
-                        <h3 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                            ✨ 新增訂閱服務
-                        </h3>
-                        
+                    <div class="glass-card p-6">
+                        <h3 class="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100" id="form-title">✨ 新增訂閱服務</h3>
                         <form id="sub-form" class="space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">服務名稱</label>
-                                    <input type="text" id="name" placeholder="Netflix, Spotify..." 
-                                           class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all" required>
+                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-name">服務名稱</label>
+                                    <input type="text" id="name" placeholder="Netflix..." class="w-full border-2 border-gray-100 dark:border-gray-700 p-3 rounded-xl dark:bg-gray-800" required>
                                 </div>
-                                
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">分類</label>
-                                    <select id="category" class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
-                                        <option value="娛樂">🎬 娛樂</option>
-                                        <option value="音樂">🎵 音樂</option>
-                                        <option value="雲端">☁️ 雲端儲存</option>
-                                        <option value="軟體">💻 軟體工具</option>
-                                        <option value="健身">💪 健身運動</option>
-                                        <option value="教育">📚 線上學習</option>
-                                        <option value="新聞">📰 新聞媒體</option>
-                                        <option value="其他">📦 其他</option>
+                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-category">分類</label>
+                                    <select id="category" class="w-full border-2 border-gray-100 dark:border-gray-700 p-3 rounded-xl dark:bg-gray-800">
+                                        <option value="Entertainment">🎬 娛樂</option>
+                                        <option value="Music">🎵 音樂</option>
+                                        <option value="Cloud">☁️ 雲端</option>
+                                        <option value="Tools">💻 工具</option>
+                                        <option value="Other">📦 其他</option>
                                     </select>
                                 </div>
                             </div>
-                            
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">幣別</label>
-                                    <select id="input_currency" class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
-                                        <option value="TWD">TWD</option>
-                                        <option value="USD">USD</option>
-                                        <option value="JPY">JPY</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="GBP">GBP</option>
-                                        <option value="HKD">HKD</option>
+                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-currency">幣別</label>
+                                    <select id="input_currency" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700">
+                                        <option value="TWD">TWD</option><option value="USD">USD</option><option value="JPY">JPY</option>
                                     </select>
                                 </div>
-                                
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">金額</label>
-                                    <input type="number" id="input_price" placeholder="299" step="0.01"
-                                           class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all" required>
+                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-amount">金額</label>
+                                    <input type="number" id="input_price" step="0.01" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
                                 </div>
-                                
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">週期</label>
-                                    <select id="input_cycle" class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
-                                        <option value="monthly">每月</option>
-                                        <option value="yearly">每年</option>
+                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-cycle">週期</label>
+                                    <select id="input_cycle" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700">
+                                        <option value="monthly">每月</option><option value="yearly">每年</option>
                                     </select>
                                 </div>
-                                
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">扣款日</label>
-                                    <input type="number" id="input_date" placeholder="15" min="1" max="31"
-                                           class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all" required>
+                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-date">扣款日</label>
+                                    <input type="number" id="input_date" min="1" max="31" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
                                 </div>
                             </div>
-                            
-                            <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg">
-                                ➕ 新增訂閱
-                            </button>
+                            <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-bold" id="add-btn">➕ 新增訂閱</button>
                         </form>
                     </div>
 
-                    <!-- Search & Filter -->
                     <div class="glass-card p-6">
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <input type="text" id="search-input" placeholder="🔍 搜尋服務名稱..." 
-                                   class="flex-1 border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all"
-                                   oninput="filterList()">
-                            
-                            <select id="filter-category" onchange="filterList()" 
-                                    class="border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
-                                <option value="">所有分類</option>
-                                <option value="娛樂">🎬 娛樂</option>
-                                <option value="音樂">🎵 音樂</option>
-                                <option value="雲端">☁️ 雲端儲存</option>
-                                <option value="軟體">💻 軟體工具</option>
-                                <option value="健身">💪 健身運動</option>
-                                <option value="教育">📚 線上學習</option>
-                                <option value="新聞">📰 新聞媒體</option>
-                                <option value="其他">📦 其他</option>
-                            </select>
-                            
-                            <button onclick="exportToCSV()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap">
-                                📥 匯出 CSV
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Subscription List -->
-                    <div class="glass-card p-6 md:p-8 animate-fade-in">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                                📋 訂閱清單
-                            </h3>
-                            <span class="text-sm text-gray-500 dark:text-gray-400" id="list-count">共 0 項</span>
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100" id="list-title">📋 訂閱清單</h3>
+                            <button onclick="exportToCSV()" class="text-sm btn-primary px-4 py-2 rounded-lg text-white" id="export-btn">📥 匯出 CSV</button>
                         </div>
-                        
                         <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="text-gray-500 dark:text-gray-400 border-b-2 border-gray-200 dark:border-gray-700 text-xs uppercase tracking-wider">
-                                        <th class="pb-4 font-bold text-left">狀態</th>
-                                        <th class="pb-4 font-bold text-left" id="th-name">服務</th>
-                                        <th class="pb-4 font-bold text-center" id="th-category">分類</th>
-                                        <th class="pb-4 font-bold text-center" id="th-cycle">週期</th>
-                                        <th class="pb-4 font-bold text-center" id="th-next">下次扣款</th>
-                                        <th class="pb-4 font-bold text-right" id="th-cost">月均費用</th>
-                                        <th class="pb-4 font-bold text-right">操作</th>
+                            <table class="w-full text-left">
+                                <thead class="text-gray-400 text-xs uppercase">
+                                    <tr>
+                                        <th class="pb-4">Status</th>
+                                        <th class="pb-4" id="th-name">服務</th>
+                                        <th class="pb-4" id="th-cycle">週期</th>
+                                        <th class="pb-4" id="th-next">下次扣款</th>
+                                        <th class="pb-4 text-right" id="th-cost">月均費用</th>
+                                        <th class="pb-4 text-right"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="sub-list" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
@@ -518,50 +158,14 @@
                     </div>
                 </div>
 
-                <!-- Right Column -->
                 <div class="space-y-6">
-                    
-                    <!-- Upcoming Payments -->
-                    <div class="glass-card p-6 animate-slide-in">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                            🔔 即將扣款
-                        </h3>
-                        <div id="upcoming-list" class="space-y-3">
-                            <p class="text-gray-400 text-sm text-center py-4">暫無即將到期的訂閱</p>
-                        </div>
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-4 dark:text-white" id="upcoming-title">🔔 即將扣款</h3>
+                        <div id="upcoming-list" class="space-y-3"></div>
                     </div>
-
-                    <!-- Chart -->
-                    <div class="glass-card p-6 animate-slide-in" style="animation-delay: 0.1s;">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">📊 支出分析</h3>
-                            <select id="chart-type" onchange="updateChartType()" class="text-xs px-3 py-1 rounded-lg border-2 border-gray-200 dark:border-gray-700">
-                                <option value="doughnut">圓餅圖</option>
-                                <option value="bar">柱狀圖</option>
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Quick Stats -->
-                    <div class="glass-card p-6 animate-slide-in" style="animation-delay: 0.2s;">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">💡 快速統計</h3>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">最高單項支出</span>
-                                <span id="highest-sub" class="font-bold text-gray-800 dark:text-gray-100">-</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">平均每月支出</span>
-                                <span id="avg-monthly" class="font-bold text-gray-800 dark:text-gray-100">NT$ 0</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">最常用分類</span>
-                                <span id="top-category" class="font-bold text-gray-800 dark:text-gray-100">-</span>
-                            </div>
-                        </div>
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-4 dark:text-white" id="chart-title">📊 支出分析</h3>
+                        <div class="h-64"><canvas id="categoryChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -569,755 +173,196 @@
     </div>
 
     <script>
-        const SUPABASE_URL = "https://xqeqjwukfkdluwjchydq.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxZXFqd3VrZmtkbHV3amNoeWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDA1OTIsImV4cCI6MjA5MzU3NjU5Mn0.tO3qfj5DnnK-U2uHxVWLcrCfpyXsqzBeC29Pezi4Z00";
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // 匯率設定
-        const exchangeRates = { 
-            TWD: 1, 
-            USD: 32.5, 
-            JPY: 0.21, 
-            EUR: 35.2, 
-            GBP: 40.5, 
-            HKD: 4.2 
-        };
-
-        // 語系設定
+        const _supabase = supabase.createClient("https://xqeqjwukfkdluwjchydq.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxZXFqd3VrZmtkbHV3amNoeWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDA1OTIsImV4cCI6MjA5MzU3NjU5Mn0.tO3qfj5DnnK-U2uHxVWLcrCfpyXsqzBeC29Pezi4Z00");
+        
         const i18n = {
             "zh-TW": {
-                welcome: "歡迎回來 👋",
-                logout: "登出",
-                statMonthly: "每月總支出",
-                statYearly: "年度累積預算",
-                statActive: "啟用中服務",
-                statUpcoming: "即將扣款",
-                formTitle: "✨ 新增訂閱服務",
-                listTitle: "📋 訂閱清單",
-                thName: "服務",
-                thCategory: "分類",
-                thCycle: "週期",
-                thNext: "下次扣款",
-                thCost: "月均費用",
-                addBtn: "➕ 新增訂閱",
-                monthly: "每月",
-                yearly: "每年",
-                daysLeft: "天後",
-                today: "今日扣款",
-                tomorrow: "明日",
-                loginBtn: "使用 Google 帳號登入",
-                authSubtitle: "智能管理你的每一筆訂閱",
-                authFooter: "安全、快速、無廣告"
-            },
-            "zh-CN": {
-                welcome: "欢迎回来 👋",
-                logout: "登出",
-                statMonthly: "每月总支出",
-                statYearly: "年度累积预算",
-                statActive: "启用中服务",
-                statUpcoming: "即将扣款",
-                formTitle: "✨ 新增订阅服务",
-                listTitle: "📋 订阅清单",
-                thName: "服务",
-                thCategory: "分类",
-                thCycle: "周期",
-                thNext: "下次扣款",
-                thCost: "月均费用",
-                addBtn: "➕ 新增订阅",
-                monthly: "每月",
-                yearly: "每年",
-                daysLeft: "天后",
-                today: "今日扣款",
-                tomorrow: "明日",
-                loginBtn: "使用 Google 账号登录",
-                authSubtitle: "智能管理你的每一笔订阅",
-                authFooter: "安全、快速、无广告"
+                welcome: "歡迎回來 👋", logout: "登出", statMonthly: "每月總支出", statYearly: "年度累積預算",
+                statActive: "啟用中服務", statUpcoming: "即將扣款", formTitle: "✨ 新增訂閱服務", listTitle: "📋 訂閱清單",
+                thName: "服務", thCycle: "週期", thNext: "下次扣款", thCost: "月均費用", addBtn: "➕ 新增訂閱",
+                monthly: "每月", yearly: "每年", today: "今日", tomorrow: "明日", daysLeft: "天後",
+                loginBtn: "使用 Google 帳號登入", authSubtitle: "智能管理你的每一筆訂閱", authFooter: "安全、快速、無廣告",
+                labelName: "服務名稱", labelCategory: "分類", labelCurrency: "幣別", labelAmount: "金額",
+                labelCycle: "週期", labelDate: "扣款日", exportBtn: "📥 匯出 CSV", upcomingTitle: "🔔 即將扣款",
+                chartTitle: "📊 支出分析", confirmDelete: "確定要刪除此訂閱嗎？", noData: "暫無資料",
+                exportAlert: "沒有資料可以匯出", csvName: "訂閱清單"
             },
             "en": {
-                welcome: "Welcome Back 👋",
-                logout: "Logout",
-                statMonthly: "Monthly Total",
-                statYearly: "Yearly Budget",
-                statActive: "Active Services",
-                statUpcoming: "Upcoming Bills",
-                formTitle: "✨ Add Subscription",
-                listTitle: "📋 Subscription List",
-                thName: "Service",
-                thCategory: "Category",
-                thCycle: "Cycle",
-                thNext: "Next Bill",
-                thCost: "Avg/Month",
-                addBtn: "➕ Add Subscription",
-                monthly: "Monthly",
-                yearly: "Yearly",
-                daysLeft: "days left",
-                today: "Today",
-                tomorrow: "Tomorrow",
-                loginBtn: "Sign in with Google",
-                authSubtitle: "Smart subscription management made easy",
-                authFooter: "Secure, Fast, Ad-free"
-            },
-            "ja": {
-                welcome: "おかえりなさい 👋",
-                logout: "ログアウト",
-                statMonthly: "月額合計",
-                statYearly: "年間予算",
-                statActive: "有効なサービス",
-                statUpcoming: "近日請求",
-                formTitle: "✨ サブスク追加",
-                listTitle: "📋 サブスク一覧",
-                thName: "サービス",
-                thCategory: "カテゴリー",
-                thCycle: "周期",
-                thNext: "次回請求",
-                thCost: "月平均",
-                addBtn: "➕ サブスク追加",
-                monthly: "月額",
-                yearly: "年額",
-                daysLeft: "日後",
-                today: "今日請求",
-                tomorrow: "明日",
-                loginBtn: "Googleでログイン",
-                authSubtitle: "サブスクをスマートに管理",
-                authFooter: "安全・高速・広告なし"
-            },
-            "ko": {
-                welcome: "환영합니다 👋",
-                logout: "로그아웃",
-                statMonthly: "월 총액",
-                statYearly: "연간 예산",
-                statActive: "활성 서비스",
-                statUpcoming: "곧 청구됨",
-                formTitle: "✨ 구독 추가",
-                listTitle: "📋 구독 목록",
-                thName: "서비스",
-                thCategory: "카테고리",
-                thCycle: "주기",
-                thNext: "다음 청구",
-                thCost: "월 평균",
-                addBtn: "➕ 구독 추가",
-                monthly: "월간",
-                yearly: "연간",
-                daysLeft: "일 후",
-                today: "오늘 청구",
-                tomorrow: "내일",
-                loginBtn: "Google로 로그인",
-                authSubtitle: "구독을 스마트하게 관리하세요",
-                authFooter: "안전하고 빠르며 광고 없음"
-            },
-            "es": {
-                welcome: "Bienvenido 👋",
-                logout: "Cerrar sesión",
-                statMonthly: "Total Mensual",
-                statYearly: "Presupuesto Anual",
-                statActive: "Servicios Activos",
-                statUpcoming: "Próximos Pagos",
-                formTitle: "✨ Añadir Suscripción",
-                listTitle: "📋 Lista de Suscripciones",
-                thName: "Servicio",
-                thCategory: "Categoría",
-                thCycle: "Ciclo",
-                thNext: "Próximo Pago",
-                thCost: "Promedio/Mes",
-                addBtn: "➕ Añadir Suscripción",
-                monthly: "Mensual",
-                yearly: "Anual",
-                daysLeft: "días",
-                today: "Hoy",
-                tomorrow: "Mañana",
-                loginBtn: "Iniciar sesión con Google",
-                authSubtitle: "Gestiona tus suscripciones inteligentemente",
-                authFooter: "Seguro, Rápido, Sin anuncios"
-            },
-            "fr": {
-                welcome: "Bienvenue 👋",
-                logout: "Déconnexion",
-                statMonthly: "Total Mensuel",
-                statYearly: "Budget Annuel",
-                statActive: "Services Actifs",
-                statUpcoming: "Paiements à Venir",
-                formTitle: "✨ Ajouter un Abonnement",
-                listTitle: "📋 Liste des Abonnements",
-                thName: "Service",
-                thCategory: "Catégorie",
-                thCycle: "Cycle",
-                thNext: "Prochain Paiement",
-                thCost: "Moyenne/Mois",
-                addBtn: "➕ Ajouter un Abonnement",
-                monthly: "Mensuel",
-                yearly: "Annuel",
-                daysLeft: "jours",
-                today: "Aujourd'hui",
-                tomorrow: "Demain",
-                loginBtn: "Se connecter avec Google",
-                authSubtitle: "Gérez vos abonnements intelligemment",
-                authFooter: "Sécurisé, Rapide, Sans publicité"
-            },
-            "de": {
-                welcome: "Willkommen zurück 👋",
-                logout: "Abmelden",
-                statMonthly: "Monatliche Summe",
-                statYearly: "Jahresbudget",
-                statActive: "Aktive Dienste",
-                statUpcoming: "Kommende Zahlungen",
-                formTitle: "✨ Abonnement hinzufügen",
-                listTitle: "📋 Abonnementliste",
-                thName: "Dienst",
-                thCategory: "Kategorie",
-                thCycle: "Zyklus",
-                thNext: "Nächste Zahlung",
-                thCost: "Durchschnitt/Monat",
-                addBtn: "➕ Abonnement hinzufügen",
-                monthly: "Monatlich",
-                yearly: "Jährlich",
-                daysLeft: "Tage",
-                today: "Heute",
-                tomorrow: "Morgen",
-                loginBtn: "Mit Google anmelden",
-                authSubtitle: "Verwalten Sie Ihre Abonnements intelligent",
-                authFooter: "Sicher, Schnell, Werbefrei"
-            },
-            "pt": {
-                welcome: "Bem-vindo 👋",
-                logout: "Sair",
-                statMonthly: "Total Mensal",
-                statYearly: "Orçamento Anual",
-                statActive: "Serviços Ativos",
-                statUpcoming: "Pagamentos Próximos",
-                formTitle: "✨ Adicionar Assinatura",
-                listTitle: "📋 Lista de Assinaturas",
-                thName: "Serviço",
-                thCategory: "Categoria",
-                thCycle: "Ciclo",
-                thNext: "Próximo Pagamento",
-                thCost: "Média/Mês",
-                addBtn: "➕ Adicionar Assinatura",
-                monthly: "Mensal",
-                yearly: "Anual",
-                daysLeft: "dias",
-                today: "Hoje",
-                tomorrow: "Amanhã",
-                loginBtn: "Entrar com Google",
-                authSubtitle: "Gerencie suas assinaturas de forma inteligente",
-                authFooter: "Seguro, Rápido, Sem anúncios"
-            },
-            "vi": {
-                welcome: "Chào mừng trở lại 👋",
-                logout: "Đăng xuất",
-                statMonthly: "Tổng Hàng Tháng",
-                statYearly: "Ngân Sách Năm",
-                statActive: "Dịch Vụ Hoạt Động",
-                statUpcoming: "Sắp Thanh Toán",
-                formTitle: "✨ Thêm Đăng Ký",
-                listTitle: "📋 Danh Sách Đăng Ký",
-                thName: "Dịch Vụ",
-                thCategory: "Danh Mục",
-                thCycle: "Chu Kỳ",
-                thNext: "Thanh Toán Tiếp",
-                thCost: "TB/Tháng",
-                addBtn: "➕ Thêm Đăng Ký",
-                monthly: "Hàng Tháng",
-                yearly: "Hàng Năm",
-                daysLeft: "ngày",
-                today: "Hôm Nay",
-                tomorrow: "Ngày Mai",
-                loginBtn: "Đăng nhập bằng Google",
-                authSubtitle: "Quản lý đăng ký thông minh",
-                authFooter: "An Toàn, Nhanh, Không quảng cáo"
-            },
-            "th": {
-                welcome: "ยินดีต้อนรับกลับ 👋",
-                logout: "ออกจากระบบ",
-                statMonthly: "ยอดรวมรายเดือน",
-                statYearly: "งบประมาณรายปี",
-                statActive: "บริการที่ใช้งาน",
-                statUpcoming: "กำลังจะครบกำหนด",
-                formTitle: "✨ เพิ่มการสมัครสมาชิก",
-                listTitle: "📋 รายการสมัครสมาชิก",
-                thName: "บริการ",
-                thCategory: "หมวดหมู่",
-                thCycle: "รอบ",
-                thNext: "ชำระครั้งต่อไป",
-                thCost: "เฉลี่ย/เดือน",
-                addBtn: "➕ เพิ่มการสมัครสมาชิก",
-                monthly: "รายเดือน",
-                yearly: "รายปี",
-                daysLeft: "วัน",
-                today: "วันนี้",
-                tomorrow: "พรุ่งนี้",
-                loginBtn: "เข้าสู่ระบบด้วย Google",
-                authSubtitle: "จัดการการสมัครสมาชิกอย่างชาญฉลาด",
-                authFooter: "ปลอดภัย, รวดเร็ว, ไม่มีโฆษณา"
+                welcome: "Welcome Back 👋", logout: "Logout", statMonthly: "Monthly Total", statYearly: "Yearly Budget",
+                statActive: "Active Services", statUpcoming: "Upcoming", formTitle: "✨ Add Subscription", listTitle: "📋 Subscriptions",
+                thName: "Service", thCycle: "Cycle", thNext: "Next Bill", thCost: "Monthly Cost", addBtn: "➕ Add Sub",
+                monthly: "Monthly", yearly: "Yearly", today: "Today", tomorrow: "Tomorrow", daysLeft: "days left",
+                loginBtn: "Sign in with Google", authSubtitle: "Smart management for your subscriptions", authFooter: "Secure, Fast, No Ads",
+                labelName: "Service Name", labelCategory: "Category", labelCurrency: "Currency", labelAmount: "Amount",
+                labelCycle: "Cycle", labelDate: "Billing Date", exportBtn: "📥 Export CSV", upcomingTitle: "🔔 Upcoming Bills",
+                chartTitle: "📊 Analysis", confirmDelete: "Are you sure to delete?", noData: "No data found",
+                exportAlert: "No data to export", csvName: "Subscription_List"
             }
         };
 
-        let currentLang = 'zh-TW';
-        let myChart, user, allSubscriptions = [];
-
-        // Initialize language preference from localStorage
-        function initLanguage() {
-            const savedLang = localStorage.getItem('preferredLang') || 'zh-TW';
-            currentLang = savedLang;
-            
-            // Update both selectors
-            const authSelector = document.getElementById('auth-lang-selector');
-            const dashSelector = document.getElementById('lang-selector');
-            
-            if (authSelector) authSelector.value = savedLang;
-            if (dashSelector) dashSelector.value = savedLang;
-            
-            updateAuthLanguage();
-        }
-
-        // Change language on auth page
-        function changeAuthLang() {
-            currentLang = document.getElementById('auth-lang-selector').value;
-            localStorage.setItem('preferredLang', currentLang);
-            updateAuthLanguage();
-        }
-
-        // Update auth page language
-        function updateAuthLanguage() {
-            const t = i18n[currentLang] || i18n['zh-TW']; // Fallback to zh-TW if language not found
-            const authSubtitle = document.getElementById('auth-subtitle');
-            const loginBtnText = document.getElementById('login-btn-text');
-            const authFooter = document.getElementById('auth-footer');
-            
-            if (authSubtitle) authSubtitle.innerText = t.authSubtitle;
-            if (loginBtnText) loginBtnText.innerText = t.loginBtn;
-            if (authFooter) authFooter.innerText = t.authFooter;
-        }
-
-        // Dark Mode Toggle
-        function toggleDarkMode() {
-            document.getElementById('body-main').classList.toggle('dark-mode');
-            const icon = document.getElementById('theme-icon');
-            icon.textContent = document.getElementById('body-main').classList.contains('dark-mode') ? '☀️' : '🌙';
-            
-            // Save preference
-            localStorage.setItem('darkMode', document.getElementById('body-main').classList.contains('dark-mode'));
-        }
-
-        // Language Change
-        function changeLang() {
-            currentLang = document.getElementById('lang-selector').value;
-            localStorage.setItem('preferredLang', currentLang);
-            updateUILanguage();
-            loadData();
-        }
+        let currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
+        let user, allSubscriptions = [];
 
         function updateUILanguage() {
-            const t = i18n[currentLang] || i18n['zh-TW']; // Fallback to zh-TW if language not found
+            const t = i18n[currentLang];
+            document.getElementById('auth-subtitle').innerText = t.authSubtitle;
+            document.getElementById('login-btn-text').innerText = t.loginBtn;
+            document.getElementById('auth-footer').innerText = t.authFooter;
+            document.getElementById('welcome-text').innerText = t.welcome;
+            document.getElementById('logout-btn').innerText = t.logout;
+            document.getElementById('stat-monthly').innerText = t.statMonthly;
+            document.getElementById('stat-yearly').innerText = t.statYearly;
+            document.getElementById('stat-active').innerText = t.statActive;
+            document.getElementById('stat-upcoming').innerText = t.statUpcoming;
+            document.getElementById('form-title').innerText = t.formTitle;
+            document.getElementById('list-title').innerText = t.listTitle;
+            document.getElementById('th-name').innerText = t.thName;
+            document.getElementById('th-cycle').innerText = t.thCycle;
+            document.getElementById('th-next').innerText = t.thNext;
+            document.getElementById('th-cost').innerText = t.thCost;
+            document.getElementById('add-btn').innerText = t.addBtn;
+            document.getElementById('label-name').innerText = t.labelName;
+            document.getElementById('label-category').innerText = t.labelCategory;
+            document.getElementById('label-currency').innerText = t.labelCurrency;
+            document.getElementById('label-amount').innerText = t.labelAmount;
+            document.getElementById('label-cycle').innerText = t.labelCycle;
+            document.getElementById('label-date').innerText = t.labelDate;
+            document.getElementById('export-btn').innerText = t.exportBtn;
+            document.getElementById('upcoming-title').innerText = t.upcomingTitle;
+            document.getElementById('chart-title').innerText = t.chartTitle;
             
-            // Dashboard elements
-            const elements = {
-                'welcome-text': t.welcome,
-                'logout-btn': t.logout,
-                'stat-monthly': t.statMonthly,
-                'stat-yearly': t.statYearly,
-                'stat-active': t.statActive,
-                'stat-upcoming': t.statUpcoming,
-                'th-name': t.thName,
-                'th-category': t.thCategory,
-                'th-cycle': t.thCycle,
-                'th-next': t.thNext,
-                'th-cost': t.thCost,
-                'add-btn': t.addBtn
-            };
+            // Update Category Dropdown
+            const cat = document.getElementById('category');
+            const catMap = currentLang === 'zh-TW' ? 
+                ['🎬 娛樂', '🎵 音樂', '☁️ 雲端', '💻 工具', '📦 其他'] : 
+                ['🎬 Entertainment', '🎵 Music', '☁️ Cloud', '💻 Tools', '📦 Other'];
+            Array.from(cat.options).forEach((opt, i) => opt.text = catMap[i]);
             
-            Object.keys(elements).forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = elements[id];
-            });
+            // Update Cycle Dropdown
+            const cyc = document.getElementById('input_cycle');
+            cyc.options[0].text = t.monthly;
+            cyc.options[1].text = t.yearly;
         }
 
-        // Check User Authentication
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
-            if (session) {
-                user = session.user;
-                showDashboard();
-                loadData();
-            } else {
-                document.getElementById('auth-section').classList.remove('hidden');
-            }
-            
-            // Load dark mode preference
-            if (localStorage.getItem('darkMode') === 'true') {
-                toggleDarkMode();
-            }
+            if (session) { user = session.user; showDashboard(); loadData(); }
+            updateUILanguage();
         }
 
         function showDashboard() {
             document.getElementById('auth-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
             document.getElementById('user-email').innerText = user.email;
-            
-            // Sync language selector with saved preference
-            document.getElementById('lang-selector').value = currentLang;
-            updateUILanguage();
         }
 
-        async function login() {
-            await _supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
+        async function login() { await _supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
+        async function logout() { await _supabase.auth.signOut(); location.reload(); }
+
+        function changeAuthLang() { 
+            currentLang = document.getElementById('auth-lang-selector').value; 
+            localStorage.setItem('preferredLang', currentLang); 
+            updateUILanguage(); 
         }
 
-        async function logout() {
-            await _supabase.auth.signOut();
-            location.reload();
+        function changeLang() { 
+            currentLang = document.getElementById('lang-selector').value; 
+            localStorage.setItem('preferredLang', currentLang); 
+            updateUILanguage(); 
+            renderList(allSubscriptions);
         }
 
-        // Load Data
+        function toggleDarkMode() { 
+            document.getElementById('body-main').classList.toggle('dark-mode'); 
+            document.getElementById('theme-icon').textContent = document.getElementById('body-main').classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+
         async function loadData() {
-            const { data, error } = await _supabase
-                .from('subscriptions')
-                .select('*')
-                .eq('user_id', user.id);
-                
-            if (error) {
-                console.error('Error loading data:', error);
-                return;
+            const { data } = await _supabase.from('subscriptions').select('*');
+            if (data) {
+                const today = new Date().getDate();
+                allSubscriptions = data.map(item => {
+                    const rate = { TWD:1, USD:32, JPY:0.21 }[item.category] || 1;
+                    let daysLeft = item.billing_date - today;
+                    if (daysLeft < 0) daysLeft += 30;
+                    return { ...item, twdPrice: item.price * rate, daysLeft };
+                });
+                renderList(allSubscriptions);
+                updateStats();
             }
-
-            const today = new Date().getDate();
-            allSubscriptions = data.map(item => {
-                const currency = item.category.match(/TWD|USD|JPY|EUR|GBP|HKD/);
-                const actualCurrency = currency ? currency[0] : 'TWD';
-                const actualCategory = item.category.replace(/TWD|USD|JPY|EUR|GBP|HKD/, '').trim();
-                
-                const twdPrice = item.price * (exchangeRates[actualCurrency] || 1);
-                let daysLeft = item.billing_date - today;
-                if (daysLeft < 0) daysLeft += 30;
-                
-                return { 
-                    ...item, 
-                    twdPrice, 
-                    daysLeft,
-                    actualCurrency,
-                    actualCategory: actualCategory || '其他'
-                };
-            }).sort((a, b) => a.daysLeft - b.daysLeft);
-
-            filterList();
-            updateStats(allSubscriptions);
-            updateUpcomingList(allSubscriptions);
         }
 
-        // Add Subscription
         document.getElementById('sub-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const currency = document.getElementById('input_currency').value;
-            const category = document.getElementById('category').value;
-            
-            const { error } = await _supabase.from('subscriptions').insert([{
+            await _supabase.from('subscriptions').insert([{
                 name: document.getElementById('name').value,
                 price: parseFloat(document.getElementById('input_price').value),
                 cycle: document.getElementById('input_cycle').value,
-                category: `${category} ${currency}`,
+                category: document.getElementById('input_currency').value, // Used as currency in this logic
                 billing_date: parseInt(document.getElementById('input_date').value),
                 user_id: user.id
             }]);
-            
-            if (error) {
-                alert('新增失敗: ' + error.message);
-            } else {
-                document.getElementById('sub-form').reset();
-                loadData();
-            }
+            document.getElementById('sub-form').reset();
+            loadData();
         });
 
-        // Delete Subscription
         async function deleteSub(id) {
-            if (confirm('確定要刪除此訂閱嗎？')) {
+            if (confirm(i18n[currentLang].confirmDelete)) {
                 await _supabase.from('subscriptions').delete().eq('id', id);
                 loadData();
             }
         }
 
-        // Filter List
-        function filterList() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const categoryFilter = document.getElementById('filter-category').value;
-            
-            const filtered = allSubscriptions.filter(item => {
-                const matchSearch = item.name.toLowerCase().includes(searchTerm);
-                const matchCategory = !categoryFilter || item.actualCategory === categoryFilter;
-                return matchSearch && matchCategory;
-            });
-            
-            renderList(filtered);
-        }
-
-        // Render List
         function renderList(items) {
             const list = document.getElementById('sub-list');
-            const t = i18n[currentLang] || i18n['zh-TW']; // Fallback
-            
-            document.getElementById('list-count').innerText = `${currentLang.startsWith('zh') ? '共' : ''} ${items.length} ${currentLang.startsWith('zh') ? '項' : 'items'}`;
-            
+            const t = i18n[currentLang];
             if (items.length === 0) {
-                const noDataText = currentLang.startsWith('zh') ? '暫無訂閱資料' : 'No subscriptions';
-                list.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">${noDataText}</td></tr>`;
+                list.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">${t.noData}</td></tr>`;
                 return;
             }
-            
             list.innerHTML = items.map(item => {
                 const moTWD = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
-                const statusClass = item.daysLeft <= 3 ? 'status-warning' : 'status-active';
-                const urgencyClass = item.daysLeft <= 3 ? 'text-red-500 font-bold' : 'text-gray-500';
-                
-                let daysText = '';
-                if (item.daysLeft === 0) daysText = t.today;
-                else if (item.daysLeft === 1) daysText = t.tomorrow;
-                else daysText = `${item.daysLeft} ${t.daysLeft}`;
-                
+                let daysText = item.daysLeft === 0 ? t.today : (item.daysLeft === 1 ? t.tomorrow : `${item.daysLeft} ${t.daysLeft}`);
                 return `
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all">
-                        <td class="py-4"><span class="${statusClass}"></span></td>
-                        <td class="py-4">
-                            <div class="font-bold text-gray-800 dark:text-gray-100">${item.name}</div>
-                            <div class="text-xs text-gray-400">${item.actualCurrency} ${item.price.toFixed(2)}</div>
-                        </td>
-                        <td class="py-4 text-center">
-                            <span class="badge bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-300">
-                                ${item.actualCategory}
-                            </span>
-                        </td>
-                        <td class="py-4 text-center text-gray-600 dark:text-gray-300">${t[item.cycle]}</td>
-                        <td class="py-4 text-center ${urgencyClass}">${daysText}</td>
-                        <td class="py-4 text-right font-bold text-gray-800 dark:text-gray-100">
-                            NT$ ${Math.round(moTWD).toLocaleString()}
-                        </td>
-                        <td class="py-4 text-right">
-                            <button onclick="deleteSub('${item.id}')" 
-                                    class="text-gray-300 hover:text-red-500 transition-colors text-xl">
-                                🗑️
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                    <tr class="text-sm">
+                        <td class="py-4"><span class="${item.daysLeft <= 3 ? 'status-warning' : 'status-active'}"></span></td>
+                        <td class="py-4 font-bold dark:text-white">${item.name}</td>
+                        <td class="py-4 dark:text-gray-400">${t[item.cycle]}</td>
+                        <td class="py-4 ${item.daysLeft <= 3 ? 'text-amber-500 font-bold' : 'dark:text-gray-400'}">${daysText}</td>
+                        <td class="py-4 text-right font-bold dark:text-white">NT$ ${Math.round(moTWD).toLocaleString()}</td>
+                        <td class="py-4 text-right"><button onclick="deleteSub('${item.id}')">🗑️</button></td>
+                    </tr>`;
             }).join('');
         }
 
-        // Update Stats
-        function updateStats(items) {
+        function updateStats() {
             let moTotal = 0;
             let upcoming = 0;
-            
-            items.forEach(i => {
-                const monthlyAmount = i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
-                moTotal += monthlyAmount;
+            allSubscriptions.forEach(i => {
+                moTotal += i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
                 if (i.daysLeft <= 7) upcoming++;
             });
-            
             document.getElementById('total-monthly').innerText = `NT$ ${Math.round(moTotal).toLocaleString()}`;
             document.getElementById('total-yearly').innerText = `NT$ ${Math.round(moTotal * 12).toLocaleString()}`;
-            document.getElementById('sub-count').innerText = items.length;
+            document.getElementById('sub-count').innerText = allSubscriptions.length;
             document.getElementById('upcoming-count').innerText = upcoming;
-            
-            // Quick stats
-            if (items.length > 0) {
-                const highest = items.reduce((max, item) => {
-                    const monthly = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
-                    return monthly > (max.monthly || 0) ? { name: item.name, monthly } : max;
-                }, {});
-                
-                document.getElementById('highest-sub').innerText = `${highest.name} (NT$ ${Math.round(highest.monthly).toLocaleString()})`;
-                document.getElementById('avg-monthly').innerText = `NT$ ${Math.round(moTotal / items.length).toLocaleString()}`;
-                
-                const categoryCount = {};
-                items.forEach(i => {
-                    categoryCount[i.actualCategory] = (categoryCount[i.actualCategory] || 0) + 1;
-                });
-                const topCat = Object.keys(categoryCount).reduce((a, b) => 
-                    categoryCount[a] > categoryCount[b] ? a : b
-                );
-                document.getElementById('top-category').innerText = topCat;
-            }
-            
-            updateChart(items);
         }
 
-        // Update Upcoming List
-        function updateUpcomingList(items) {
-            const upcoming = items.filter(i => i.daysLeft <= 7);
-            const list = document.getElementById('upcoming-list');
-            const t = i18n[currentLang] || i18n['zh-TW'];
-            
-            if (upcoming.length === 0) {
-                const noDataText = currentLang.startsWith('zh-TW') ? '暫無即將到期的訂閱' :
-                                   currentLang.startsWith('zh-CN') ? '暂无即将到期的订阅' :
-                                   currentLang === 'ja' ? '期限が近いサブスクはありません' :
-                                   currentLang === 'ko' ? '곧 만료되는 구독이 없습니다' :
-                                   'No upcoming bills';
-                list.innerHTML = `<p class="text-gray-400 text-sm text-center py-4">${noDataText}</p>`;
-                return;
-            }
-            
-            list.innerHTML = upcoming.map(item => {
-                const moTWD = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
-                const urgencyColor = item.daysLeft <= 3 ? 'border-red-200 bg-red-50 dark:bg-red-900/10' : 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10';
-                
-                let daysText = '';
-                if (item.daysLeft === 0) {
-                    daysText = t.today;
-                } else if (item.daysLeft === 1) {
-                    daysText = t.tomorrow;
-                } else {
-                    daysText = `${item.daysLeft} ${t.daysLeft}`;
-                }
-                
-                return `
-                    <div class="border-l-4 ${urgencyColor} p-3 rounded-r-lg">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">${item.name}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    ${daysText}
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">
-                                    NT$ ${Math.round(moTWD).toLocaleString()}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Chart
-        function updateChart(items) {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            const chartType = document.getElementById('chart-type').value;
-            
-            const chartData = items.reduce((acc, i) => {
-                const val = i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
-                acc[i.actualCategory] = (acc[i.actualCategory] || 0) + val;
-                return acc;
-            }, {});
-            
-            if (myChart) myChart.destroy();
-            
-            const isDark = document.getElementById('body-main').classList.contains('dark-mode');
-            
-            myChart = new Chart(ctx, {
-                type: chartType,
-                data: {
-                    labels: Object.keys(chartData),
-                    datasets: [{
-                        data: Object.values(chartData),
-                        backgroundColor: [
-                            '#0ea5e9',
-                            '#06b6d4',
-                            '#10b981',
-                            '#6366f1',
-                            '#8b5cf6',
-                            '#f59e0b',
-                            '#ec4899',
-                            '#14b8a6'
-                        ],
-                        borderWidth: 0,
-                        borderRadius: chartType === 'bar' ? 8 : 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                usePointStyle: true,
-                                padding: 15,
-                                color: isDark ? '#e0e0e0' : '#374151',
-                                font: { size: 12, family: 'Outfit' }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: isDark ? 'rgba(30, 30, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                            titleColor: isDark ? '#e0e0e0' : '#111827',
-                            bodyColor: isDark ? '#b0b0b0' : '#374151',
-                            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: true,
-                            callbacks: {
-                                label: function(context) {
-                                    return ` NT$ ${Math.round(context.parsed).toLocaleString()}`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: chartType === 'doughnut' ? '70%' : 0,
-                    scales: chartType === 'bar' ? {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
-                            },
-                            ticks: {
-                                color: isDark ? '#909090' : '#6b7280',
-                                callback: function(value) {
-                                    return 'NT$ ' + value.toLocaleString();
-                                }
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: isDark ? '#909090' : '#6b7280' }
-                        }
-                    } : {}
-                }
-            });
-        }
-
-        function updateChartType() {
-            updateChart(allSubscriptions);
-        }
-
-        // Export to CSV
         function exportToCSV() {
-            if (allSubscriptions.length === 0) {
-                alert('沒有資料可以匯出');
-                return;
-            }
-            
-            const headers = ['服務名稱', '分類', '金額', '幣別', '週期', '扣款日', '月均費用(TWD)'];
-            const rows = allSubscriptions.map(item => {
-                const monthly = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
-                return [
-                    item.name,
-                    item.actualCategory,
-                    item.price,
-                    item.actualCurrency,
-                    item.cycle === 'monthly' ? '每月' : '每年',
-                    item.billing_date,
-                    Math.round(monthly)
-                ];
+            const t = i18n[currentLang];
+            if (allSubscriptions.length === 0) { alert(t.exportAlert); return; }
+            let csv = '\uFEFF' + `Name,Price,Cycle,Monthly_TWD\n`;
+            allSubscriptions.forEach(i => {
+                const moTWD = i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
+                csv += `${i.name},${i.price},${i.cycle},${Math.round(moTWD)}\n`;
             });
-            
-            let csvContent = '\uFEFF'; // BOM for UTF-8
-            csvContent += headers.join(',') + '\n';
-            rows.forEach(row => {
-                csvContent += row.join(',') + '\n';
-            });
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `訂閱清單_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `${t.csvName}_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
         }
 
-        // Initialize
-        initLanguage();
         checkUser();
     </script>
 </body>
