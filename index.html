@@ -3,170 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSub Pro - Intelligent Subscription Management</title>
+    <title>VibeSub Pro - Subscription Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', -apple-system, sans-serif; transition: all 0.4s ease; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; }
-        .glass-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
-        .dark-mode { background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); }
-        .dark-mode .glass-card { background: rgba(30, 30, 46, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .dark-mode .text-gray-800 { color: #f0f0f0 !important; }
-        .dark-mode .text-gray-600 { color: #b0b0b0 !important; }
+        body { font-family: 'Outfit', sans-serif; transition: all 0.4s ease; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: white; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
         .gradient-primary { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); }
-        .btn-primary { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); transition: all 0.3s ease; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4); }
+        .btn-primary { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); transition: all 0.3s ease; color: white; font-weight: 600; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4); }
+        input, select { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; }
         .status-active { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; }
-        .status-warning { width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
-<body id="body-main">
+<body class="p-4 md:p-8">
 
     <div id="auth-section" class="min-h-screen flex items-center justify-center p-4">
         <div class="glass-card p-8 md:p-12 max-w-md w-full text-center">
-            <div class="flex justify-end mb-6">
-                <select id="auth-lang-selector" onchange="changeAuthLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer outline-none">
-                    <option value="zh-TW">繁體中文</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
             <div class="mb-6">
                 <div class="w-20 h-20 mx-auto mb-4 gradient-primary rounded-3xl flex items-center justify-center text-4xl">💎</div>
                 <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">VibeSub Pro</h1>
-                <p class="text-gray-600 dark:text-gray-400 text-lg" id="auth-subtitle">智能管理你的每一筆訂閱</p>
+                <p class="text-slate-400 text-lg" id="auth-subtitle">智能管理你的每一筆訂閱</p>
             </div>
-            <button onclick="login()" class="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 py-4 px-6 rounded-2xl hover:shadow-xl transition-all font-semibold text-gray-700 dark:text-gray-200">
-                <svg class="w-6 h-6" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
+            <button onclick="login()" class="w-full flex items-center justify-center gap-3 bg-slate-800 border border-slate-700 py-4 px-6 rounded-2xl hover:bg-slate-700 transition-all">
                 <span id="login-btn-text">使用 Google 帳號登入</span>
             </button>
-            <p class="text-xs text-gray-400 mt-6" id="auth-footer">安全、快速、無廣告</p>
         </div>
     </div>
 
-    <div id="dashboard-section" class="hidden min-h-screen p-4 md:p-8">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-white mb-2" id="welcome-text">歡迎回來 👋</h1>
-                    <span id="user-email" class="text-white/70 text-sm"></span>
+    <div id="dashboard-section" class="hidden max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold" id="welcome-text">歡迎回來 👋</h1>
+                <span id="user-email" class="text-slate-400 text-sm"></span>
+            </div>
+            <div class="flex gap-3">
+                <select id="lang-selector" onchange="changeLang()" class="glass-card px-4 py-2 text-sm border-0 cursor-pointer outline-none">
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="en">English</option>
+                </select>
+                <button onclick="logout()" class="glass-card px-6 py-2 text-red-400 font-semibold hover:bg-red-900/20" id="logout-btn">登出</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-bold mb-6" id="form-title">✨ 新增訂閱服務</h3>
+                    <form id="sub-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2" id="label-name">服務名稱</label>
+                                <input type="text" id="name" placeholder="Netflix..." class="w-full p-3 rounded-xl outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2" id="label-category">分類</label>
+                                <select id="category-select" class="w-full p-3 rounded-xl outline-none">
+                                    <option value="Entertainment">🎬 娛樂</option>
+                                    <option value="Music">🎵 音樂</option>
+                                    <option value="Cloud">☁️ 雲端</option>
+                                    <option value="Tools">💻 工具</option>
+                                    <option value="Other">📦 其他</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2" id="label-currency">幣別</label>
+                                <select id="input_currency" class="w-full p-3 rounded-xl outline-none">
+                                    <option value="TWD">TWD</option>
+                                    <option value="USD">USD</option>
+                                    <option value="JPY">JPY</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2" id="label-amount">金額</label>
+                                <input type="number" id="input_price" step="0.01" class="w-full p-3 rounded-xl outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2" id="label-cycle">週期</label>
+                                <select id="input_cycle" class="w-full p-3 rounded-xl outline-none">
+                                    <option value="monthly">每月</option>
+                                    <option value="yearly">每年</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2" id="label-date">扣款日</label>
+                                <input type="number" id="input_date" min="1" max="31" class="w-full p-3 rounded-xl outline-none" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full btn-primary py-4 rounded-xl font-bold" id="add-btn">➕ 新增訂閱</button>
+                    </form>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="toggleDarkMode()" class="glass-card p-3 hover:scale-105 transition-transform"><span id="theme-icon">🌙</span></button>
-                    <select id="lang-selector" onchange="changeLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer outline-none">
-                        <option value="zh-TW">繁體中文</option>
-                        <option value="en">English</option>
-                    </select>
-                    <button onclick="logout()" class="glass-card px-6 py-2 text-red-500 font-semibold hover:bg-red-50" id="logout-btn">登出</button>
+
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold" id="list-title">📋 訂閱清單</h3>
+                        <div class="text-2xl font-bold text-emerald-400" id="monthly-total-display">NT$ 0</div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="text-slate-400 text-xs uppercase">
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-4">Status</th>
+                                    <th class="pb-4" id="th-name">服務</th>
+                                    <th class="pb-4" id="th-cycle">週期</th>
+                                    <th class="pb-4 text-right" id="th-cost">月均費用 (TWD)</th>
+                                    <th class="pb-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="sub-list" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="glass-card p-6 gradient-primary text-white">
-                    <p class="text-sm font-medium mb-2" id="stat-monthly">每月總支出</p>
-                    <h2 id="total-monthly" class="text-3xl font-bold">NT$ 0</h2>
+            <div class="space-y-6">
+                <div class="glass-card p-6">
+                    <h3 class="font-bold mb-4" id="chart-title">📊 支出分析</h3>
+                    <div class="h-64 relative"><canvas id="categoryChart"></canvas></div>
                 </div>
-                <div class="glass-card p-6 bg-emerald-600 text-white">
-                    <p class="text-sm font-medium mb-2" id="stat-yearly">年度累積預算</p>
-                    <h2 id="total-yearly" class="text-3xl font-bold">NT$ 0</h2>
-                </div>
-                <div class="glass-card p-6 bg-amber-500 text-white">
-                    <p class="text-sm font-medium mb-2" id="stat-active">啟用中服務</p>
-                    <h2 id="sub-count" class="text-3xl font-bold">0</h2>
-                </div>
-                <div class="glass-card p-6 bg-indigo-500 text-white">
-                    <p class="text-sm font-medium mb-2" id="stat-upcoming">即將扣款</p>
-                    <h2 id="upcoming-count" class="text-3xl font-bold">0</h2>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="glass-card p-6">
-                        <h3 class="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100" id="form-title">✨ 新增訂閱服務</h3>
-                        <form id="sub-form" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-name">服務名稱</label>
-                                    <input type="text" id="name" placeholder="Netflix..." class="w-full border-2 border-gray-100 dark:border-gray-700 p-3 rounded-xl dark:bg-gray-800" required>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-category">分類</label>
-                                    <select id="category" class="w-full border-2 border-gray-100 dark:border-gray-700 p-3 rounded-xl dark:bg-gray-800">
-                                        <option value="Entertainment">🎬 娛樂</option>
-                                        <option value="Music">🎵 音樂</option>
-                                        <option value="Cloud">☁️ 雲端</option>
-                                        <option value="Tools">💻 工具</option>
-                                        <option value="Other">📦 其他</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-currency">幣別</label>
-                                    <select id="input_currency" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700">
-                                        <option value="TWD">TWD</option><option value="USD">USD</option><option value="JPY">JPY</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-amount">金額</label>
-                                    <input type="number" id="input_price" step="0.01" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-cycle">週期</label>
-                                    <select id="input_cycle" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700">
-                                        <option value="monthly">每月</option><option value="yearly">每年</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-400 mb-2" id="label-date">扣款日</label>
-                                    <input type="number" id="input_date" min="1" max="31" class="w-full border-2 border-gray-100 p-3 rounded-xl dark:bg-gray-800 dark:border-gray-700" required>
-                                </div>
-                            </div>
-                            <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-bold" id="add-btn">➕ 新增訂閱</button>
-                        </form>
-                    </div>
-
-                    <div class="glass-card p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100" id="list-title">📋 訂閱清單</h3>
-                            <button onclick="exportToCSV()" class="text-sm btn-primary px-4 py-2 rounded-lg text-white" id="export-btn">📥 匯出 CSV</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead class="text-gray-400 text-xs uppercase">
-                                    <tr>
-                                        <th class="pb-4">Status</th>
-                                        <th class="pb-4" id="th-name">服務</th>
-                                        <th class="pb-4" id="th-cycle">週期</th>
-                                        <th class="pb-4" id="th-next">下次扣款</th>
-                                        <th class="pb-4 text-right" id="th-cost">月均費用</th>
-                                        <th class="pb-4 text-right"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="sub-list" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="glass-card p-6">
-                        <h3 class="font-bold mb-4 dark:text-white" id="upcoming-title">🔔 即將扣款</h3>
-                        <div id="upcoming-list" class="space-y-3"></div>
-                    </div>
-                    <div class="glass-card p-6">
-                        <h3 class="font-bold mb-4 dark:text-white" id="chart-title">📊 支出分析</h3>
-                        <div class="h-64"><canvas id="categoryChart"></canvas></div>
-                    </div>
+                <div class="glass-card p-6">
+                    <h3 class="font-bold mb-4" id="upcoming-title">🔔 即將扣款 (7天內)</h3>
+                    <div id="upcoming-list" class="space-y-3 text-sm"></div>
                 </div>
             </div>
         </div>
@@ -174,193 +136,163 @@
 
     <script>
         const _supabase = supabase.createClient("https://xqeqjwukfkdluwjchydq.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxZXFqd3VrZmtkbHV3amNoeWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDA1OTIsImV4cCI6MjA5MzU3NjU5Mn0.tO3qfj5DnnK-U2uHxVWLcrCfpyXsqzBeC29Pezi4Z00");
-        
+
         const i18n = {
             "zh-TW": {
-                welcome: "歡迎回來 👋", logout: "登出", statMonthly: "每月總支出", statYearly: "年度累積預算",
-                statActive: "啟用中服務", statUpcoming: "即將扣款", formTitle: "✨ 新增訂閱服務", listTitle: "📋 訂閱清單",
-                thName: "服務", thCycle: "週期", thNext: "下次扣款", thCost: "月均費用", addBtn: "➕ 新增訂閱",
+                welcome: "歡迎回來 👋", logout: "登出", formTitle: "✨ 新增訂閱服務", listTitle: "📋 訂閱清單",
+                thName: "服務", thCycle: "週期", thCost: "月均費用 (TWD)", addBtn: "➕ 新增訂閱",
                 monthly: "每月", yearly: "每年", today: "今日", tomorrow: "明日", daysLeft: "天後",
-                loginBtn: "使用 Google 帳號登入", authSubtitle: "智能管理你的每一筆訂閱", authFooter: "安全、快速、無廣告",
+                authSubtitle: "智能管理你的每一筆訂閱", loginBtn: "使用 Google 帳號登入",
                 labelName: "服務名稱", labelCategory: "分類", labelCurrency: "幣別", labelAmount: "金額",
-                labelCycle: "週期", labelDate: "扣款日", exportBtn: "📥 匯出 CSV", upcomingTitle: "🔔 即將扣款",
-                chartTitle: "📊 支出分析", confirmDelete: "確定要刪除此訂閱嗎？", noData: "暫無資料",
-                exportAlert: "沒有資料可以匯出", csvName: "訂閱清單"
+                labelCycle: "週期", labelDate: "扣款日", chartTitle: "📊 支出分析", upcomingTitle: "🔔 即將扣款 (7天內)",
+                categories: { Entertainment: "🎬 娛樂", Music: "🎵 音樂", Cloud: "☁️ 雲端", Tools: "💻 工具", Other: "📦 其他" },
+                confirmDelete: "確定要刪除嗎？", noData: "暫無資料"
             },
             "en": {
-                welcome: "Welcome Back 👋", logout: "Logout", statMonthly: "Monthly Total", statYearly: "Yearly Budget",
-                statActive: "Active Services", statUpcoming: "Upcoming", formTitle: "✨ Add Subscription", listTitle: "📋 Subscriptions",
-                thName: "Service", thCycle: "Cycle", thNext: "Next Bill", thCost: "Monthly Cost", addBtn: "➕ Add Sub",
+                welcome: "Welcome Back 👋", logout: "Logout", formTitle: "✨ Add Subscription", listTitle: "📋 Subscriptions",
+                thName: "Service", thCycle: "Cycle", thCost: "Monthly (TWD)", addBtn: "➕ Add Sub",
                 monthly: "Monthly", yearly: "Yearly", today: "Today", tomorrow: "Tomorrow", daysLeft: "days left",
-                loginBtn: "Sign in with Google", authSubtitle: "Smart management for your subscriptions", authFooter: "Secure, Fast, No Ads",
+                authSubtitle: "Smart management for your subscriptions", loginBtn: "Sign in with Google",
                 labelName: "Service Name", labelCategory: "Category", labelCurrency: "Currency", labelAmount: "Amount",
-                labelCycle: "Cycle", labelDate: "Billing Date", exportBtn: "📥 Export CSV", upcomingTitle: "🔔 Upcoming Bills",
-                chartTitle: "📊 Analysis", confirmDelete: "Are you sure to delete?", noData: "No data found",
-                exportAlert: "No data to export", csvName: "Subscription_List"
+                labelCycle: "Cycle", labelDate: "Billing Date", chartTitle: "📊 Analysis", upcomingTitle: "🔔 Upcoming (7 days)",
+                categories: { Entertainment: "🎬 Entertainment", Music: "🎵 Music", Cloud: "☁️ Cloud", Tools: "💻 Tools", Other: "📦 Other" },
+                confirmDelete: "Are you sure?", noData: "No data"
             }
         };
 
         let currentLang = localStorage.getItem('preferredLang') || 'zh-TW';
-        let user, allSubscriptions = [];
+        let allSubs = [];
+        let myChart = null;
 
         function updateUILanguage() {
             const t = i18n[currentLang];
-            document.getElementById('auth-subtitle').innerText = t.authSubtitle;
-            document.getElementById('login-btn-text').innerText = t.loginBtn;
-            document.getElementById('auth-footer').innerText = t.authFooter;
-            document.getElementById('welcome-text').innerText = t.welcome;
-            document.getElementById('logout-btn').innerText = t.logout;
-            document.getElementById('stat-monthly').innerText = t.statMonthly;
-            document.getElementById('stat-yearly').innerText = t.statYearly;
-            document.getElementById('stat-active').innerText = t.statActive;
-            document.getElementById('stat-upcoming').innerText = t.statUpcoming;
-            document.getElementById('form-title').innerText = t.formTitle;
-            document.getElementById('list-title').innerText = t.listTitle;
-            document.getElementById('th-name').innerText = t.thName;
-            document.getElementById('th-cycle').innerText = t.thCycle;
-            document.getElementById('th-next').innerText = t.thNext;
-            document.getElementById('th-cost').innerText = t.thCost;
-            document.getElementById('add-btn').innerText = t.addBtn;
-            document.getElementById('label-name').innerText = t.labelName;
-            document.getElementById('label-category').innerText = t.labelCategory;
-            document.getElementById('label-currency').innerText = t.labelCurrency;
-            document.getElementById('label-amount').innerText = t.labelAmount;
-            document.getElementById('label-cycle').innerText = t.labelCycle;
-            document.getElementById('label-date').innerText = t.labelDate;
-            document.getElementById('export-btn').innerText = t.exportBtn;
-            document.getElementById('upcoming-title').innerText = t.upcomingTitle;
-            document.getElementById('chart-title').innerText = t.chartTitle;
+            const updates = {
+                'auth-subtitle': t.authSubtitle, 'login-btn-text': t.loginBtn, 'welcome-text': t.welcome,
+                'logout-btn': t.logout, 'form-title': t.formTitle, 'list-title': t.listTitle,
+                'th-name': t.thName, 'th-cycle': t.thCycle, 'th-cost': t.thCost, 'add-btn': t.addBtn,
+                'label-name': t.labelName, 'label-category': t.labelCategory, 'label-currency': t.labelCurrency,
+                'label-amount': t.labelAmount, 'label-cycle': t.labelCycle, 'label-date': t.labelDate,
+                'chart-title': t.chartTitle, 'upcoming-title': t.upcomingTitle
+            };
+            Object.keys(updates).forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = updates[id]; });
+
+            const cat = document.getElementById('category-select');
+            const catKeys = ['Entertainment', 'Music', 'Cloud', 'Tools', 'Other'];
+            Array.from(cat.options).forEach((opt, i) => opt.text = t.categories[catKeys[i]]);
             
-            // Update Category Dropdown
-            const cat = document.getElementById('category');
-            const catMap = currentLang === 'zh-TW' ? 
-                ['🎬 娛樂', '🎵 音樂', '☁️ 雲端', '💻 工具', '📦 其他'] : 
-                ['🎬 Entertainment', '🎵 Music', '☁️ Cloud', '💻 Tools', '📦 Other'];
-            Array.from(cat.options).forEach((opt, i) => opt.text = catMap[i]);
-            
-            // Update Cycle Dropdown
             const cyc = document.getElementById('input_cycle');
-            cyc.options[0].text = t.monthly;
-            cyc.options[1].text = t.yearly;
+            cyc.options[0].text = t.monthly; cyc.options[1].text = t.yearly;
+
+            if(allSubs.length > 0) renderAll();
         }
 
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
-            if (session) { user = session.user; showDashboard(); loadData(); }
+            if (session) {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('user-email').innerText = session.user.email;
+                loadData();
+            }
             updateUILanguage();
-        }
-
-        function showDashboard() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
-            document.getElementById('user-email').innerText = user.email;
         }
 
         async function login() { await _supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
-
-        function changeAuthLang() { 
-            currentLang = document.getElementById('auth-lang-selector').value; 
-            localStorage.setItem('preferredLang', currentLang); 
-            updateUILanguage(); 
-        }
-
-        function changeLang() { 
-            currentLang = document.getElementById('lang-selector').value; 
-            localStorage.setItem('preferredLang', currentLang); 
-            updateUILanguage(); 
-            renderList(allSubscriptions);
-        }
-
-        function toggleDarkMode() { 
-            document.getElementById('body-main').classList.toggle('dark-mode'); 
-            document.getElementById('theme-icon').textContent = document.getElementById('body-main').classList.contains('dark-mode') ? '☀️' : '🌙';
-        }
+        function changeLang() { currentLang = document.getElementById('lang-selector').value; localStorage.setItem('preferredLang', currentLang); updateUILanguage(); }
 
         async function loadData() {
             const { data } = await _supabase.from('subscriptions').select('*');
             if (data) {
                 const today = new Date().getDate();
-                allSubscriptions = data.map(item => {
-                    const rate = { TWD:1, USD:32, JPY:0.21 }[item.category] || 1;
+                allSubs = data.map(item => {
+                    const rate = { TWD: 1, USD: 32, JPY: 0.21 }[item.category] || 1;
+                    const monthlyTWD = item.cycle === 'yearly' ? (item.price * rate) / 12 : (item.price * rate);
                     let daysLeft = item.billing_date - today;
                     if (daysLeft < 0) daysLeft += 30;
-                    return { ...item, twdPrice: item.price * rate, daysLeft };
+                    return { ...item, monthlyTWD, daysLeft };
                 });
-                renderList(allSubscriptions);
-                updateStats();
+                renderAll();
             }
         }
 
         document.getElementById('sub-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const { data: { session } } = await _supabase.auth.getSession();
             await _supabase.from('subscriptions').insert([{
                 name: document.getElementById('name').value,
                 price: parseFloat(document.getElementById('input_price').value),
                 cycle: document.getElementById('input_cycle').value,
-                category: document.getElementById('input_currency').value, // Used as currency in this logic
+                category: document.getElementById('input_currency').value,
+                category_name: document.getElementById('category-select').value,
                 billing_date: parseInt(document.getElementById('input_date').value),
-                user_id: user.id
+                user_id: session.user.id
             }]);
             document.getElementById('sub-form').reset();
             loadData();
         });
 
-        async function deleteSub(id) {
-            if (confirm(i18n[currentLang].confirmDelete)) {
-                await _supabase.from('subscriptions').delete().eq('id', id);
-                loadData();
-            }
-        }
+        async function deleteSub(id) { if(confirm(i18n[currentLang].confirmDelete)) { await _supabase.from('subscriptions').delete().eq('id', id); loadData(); } }
 
-        function renderList(items) {
+        function renderAll() {
+            const t = i18n[currentLang];
             const list = document.getElementById('sub-list');
-            const t = i18n[currentLang];
-            if (items.length === 0) {
-                list.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">${t.noData}</td></tr>`;
-                return;
-            }
-            list.innerHTML = items.map(item => {
-                const moTWD = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
-                let daysText = item.daysLeft === 0 ? t.today : (item.daysLeft === 1 ? t.tomorrow : `${item.daysLeft} ${t.daysLeft}`);
-                return `
-                    <tr class="text-sm">
-                        <td class="py-4"><span class="${item.daysLeft <= 3 ? 'status-warning' : 'status-active'}"></span></td>
-                        <td class="py-4 font-bold dark:text-white">${item.name}</td>
-                        <td class="py-4 dark:text-gray-400">${t[item.cycle]}</td>
-                        <td class="py-4 ${item.daysLeft <= 3 ? 'text-amber-500 font-bold' : 'dark:text-gray-400'}">${daysText}</td>
-                        <td class="py-4 text-right font-bold dark:text-white">NT$ ${Math.round(moTWD).toLocaleString()}</td>
-                        <td class="py-4 text-right"><button onclick="deleteSub('${item.id}')">🗑️</button></td>
-                    </tr>`;
-            }).join('');
+            list.innerHTML = allSubs.map(s => `
+                <tr class="hover:bg-slate-800/50 transition">
+                    <td class="py-4"><span class="${s.daysLeft <= 3 ? 'status-warning' : 'status-active'}"></span></td>
+                    <td class="py-4 font-bold text-sky-400">${s.name}</td>
+                    <td class="py-4 text-slate-400">${t[s.cycle]}</td>
+                    <td class="py-4 text-right font-mono">NT$ ${Math.round(s.monthlyTWD).toLocaleString()}</td>
+                    <td class="py-4 text-right"><button onclick="deleteSub('${s.id}')" class="hover:text-red-400 transition">🗑️</button></td>
+                </tr>
+            `).join('');
+
+            const total = allSubs.reduce((sum, s) => sum + s.monthlyTWD, 0);
+            document.getElementById('monthly-total-display').innerText = `NT$ ${Math.round(total).toLocaleString()}`;
+
+            updateUpcoming();
+            updateChart();
         }
 
-        function updateStats() {
-            let moTotal = 0;
-            let upcoming = 0;
-            allSubscriptions.forEach(i => {
-                moTotal += i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
-                if (i.daysLeft <= 7) upcoming++;
-            });
-            document.getElementById('total-monthly').innerText = `NT$ ${Math.round(moTotal).toLocaleString()}`;
-            document.getElementById('total-yearly').innerText = `NT$ ${Math.round(moTotal * 12).toLocaleString()}`;
-            document.getElementById('sub-count').innerText = allSubscriptions.length;
-            document.getElementById('upcoming-count').innerText = upcoming;
+        function updateUpcoming() {
+            const t = i18n[currentLang];
+            const list = document.getElementById('upcoming-list');
+            const upcoming = allSubs.filter(s => s.daysLeft <= 7).sort((a, b) => a.daysLeft - b.daysLeft);
+            if (upcoming.length === 0) { list.innerHTML = `<p class="text-slate-500 text-center">${t.noData}</p>`; return; }
+            list.innerHTML = upcoming.map(s => `
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-800/50 border border-slate-700">
+                    <div><div class="font-bold">${s.name}</div><div class="text-xs text-slate-500">${s.daysLeft === 0 ? t.today : (s.daysLeft === 1 ? t.tomorrow : s.daysLeft + t.daysLeft)}</div></div>
+                    <div class="text-emerald-400 font-bold">NT$ ${Math.round(s.monthlyTWD).toLocaleString()}</div>
+                </div>
+            `).join('');
         }
 
-        function exportToCSV() {
+        function updateChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
             const t = i18n[currentLang];
-            if (allSubscriptions.length === 0) { alert(t.exportAlert); return; }
-            let csv = '\uFEFF' + `Name,Price,Cycle,Monthly_TWD\n`;
-            allSubscriptions.forEach(i => {
-                const moTWD = i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
-                csv += `${i.name},${i.price},${i.cycle},${Math.round(moTWD)}\n`;
+            const dataMap = allSubs.reduce((acc, s) => {
+                const key = s.category_name || 'Other';
+                const label = t.categories[key] || t.categories.Other;
+                acc[label] = (acc[label] || 0) + s.monthlyTWD;
+                return acc;
+            }, {});
+
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(dataMap),
+                    datasets: [{
+                        data: Object.values(dataMap),
+                        backgroundColor: ['#0ea5e9', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#14b8a6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false, cutout: '75%',
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, font: { size: 10 } } } }
+                }
             });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `${t.csvName}_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
         }
 
         checkUser();
