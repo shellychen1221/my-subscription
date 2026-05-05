@@ -3,104 +3,566 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSub Pro - 智能訂閱管理員</title>
+    <title>VibeSub Pro - 智能訂閱管理平台</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .card { background: white; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .status-critical { color: #ef4444; font-weight: bold; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        
+        /* Glass Morphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Dark Mode Styles */
+        .dark-mode {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+        }
+        
+        .dark-mode .glass-card {
+            background: rgba(30, 30, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark-mode input, 
+        .dark-mode select, 
+        .dark-mode textarea {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .dark-mode input:focus, 
+        .dark-mode select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #667eea;
+        }
+        
+        .dark-mode .text-gray-800 { color: #f0f0f0 !important; }
+        .dark-mode .text-gray-600 { color: #b0b0b0 !important; }
+        .dark-mode .text-gray-500 { color: #909090 !important; }
+        .dark-mode .text-gray-400 { color: #707070 !important; }
+        .dark-mode .divide-gray-100 { border-color: rgba(255, 255, 255, 0.05) !important; }
+        .dark-mode tr:hover { background: rgba(255, 255, 255, 0.03) !important; }
+        
+        /* Gradient Backgrounds */
+        .gradient-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        }
+        
+        .gradient-success {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        }
+        
+        .gradient-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        }
+        
+        .gradient-info {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-fade-in {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .animate-slide-in {
+            animation: slideInRight 0.6s ease-out forwards;
+        }
+        
+        .stat-card {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .stat-card:nth-child(2) { animation-delay: 0.1s; }
+        .stat-card:nth-child(3) { animation-delay: 0.2s; }
+        .stat-card:nth-child(4) { animation-delay: 0.3s; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            border-radius: 10px;
+        }
+        
+        /* Button Styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        /* Badge Styles */
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        /* Table Styles */
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background: rgba(14, 165, 233, 0.05);
+        }
+        
+        /* Status Indicators */
+        .status-active {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-warning {
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Input Focus */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(14, 165, 233, 0.1);
+            border-top: 3px solid #0ea5e9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .glass-card {
+                border-radius: 16px;
+            }
+            
+            .stat-card h2 {
+                font-size: 24px !important;
+            }
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body id="body-main">
 
-    <div id="auth-section" class="max-w-md mx-auto mt-20 text-center">
-        <h1 class="text-4xl font-bold mb-4 text-gray-900">VibeSub Pro 🚀</h1>
-        <p class="text-gray-500 mb-8">掌握每一分訂閱支出</p>
-        <button onclick="login()" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 py-4 px-4 rounded-2xl hover:shadow-md transition-all font-semibold text-gray-700">
-            <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> 使用 Google 帳號登入
-        </button>
+    <!-- Auth Section -->
+    <div id="auth-section" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass-card p-8 md:p-12 max-w-md w-full text-center animate-fade-in">
+            <!-- Language Selector on Auth Page -->
+            <div class="flex justify-end mb-6">
+                <select id="auth-lang-selector" onchange="changeAuthLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer">
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="zh-CN">简体中文</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="pt">Português</option>
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="th">ภาษาไทย</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <div class="w-20 h-20 mx-auto mb-4 gradient-primary rounded-3xl flex items-center justify-center text-4xl">
+                    💎
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent" id="auth-title">
+                    VibeSub Pro
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 text-lg" id="auth-subtitle">智能管理你的每一筆訂閱</p>
+            </div>
+            
+            <button onclick="login()" class="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 py-4 px-6 rounded-2xl hover:shadow-xl transition-all font-semibold text-gray-700 dark:text-gray-200 group">
+                <svg class="w-6 h-6 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span id="login-btn-text">使用 Google 帳號登入</span>
+            </button>
+            
+            <p class="text-xs text-gray-400 mt-6" id="auth-footer">安全、快速、無廣告</p>
+        </div>
     </div>
 
-    <div id="dashboard-section" class="hidden max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">歡迎回來 👋</h1>
-                <span id="user-email" class="text-sm text-gray-400"></span>
-            </div>
-            <button onclick="logout()" class="bg-gray-200 hover:bg-gray-300 text-gray-600 px-4 py-2 rounded-xl text-sm transition">登出系統</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="card p-6 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                <p class="opacity-80 text-sm font-medium">每月預估支出</p>
-                <h2 id="total-monthly" class="text-3xl font-bold mt-1">NT$ 0</h2>
-            </div>
-            <div class="card p-6 bg-white border-l-4 border-purple-500">
-                <p class="text-gray-400 text-sm">年度累積金額</p>
-                <h2 id="total-yearly" class="text-3xl font-bold mt-1 text-gray-800">NT$ 0</h2>
-            </div>
-            <div class="card p-6 bg-white border-l-4 border-green-500">
-                <p class="text-gray-400 text-sm">活躍中的訂閱</p>
-                <h2 id="sub-count" class="text-3xl font-bold mt-1 text-gray-800">0</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-6">
-                <div class="card p-6">
-                    <h3 class="font-bold mb-4 text-gray-800">✨ 新增服務</h3>
-                    <form id="sub-form" class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <input type="text" id="name" placeholder="服務名稱 (如 Netflix)" class="border p-2.5 rounded-xl col-span-2 md:col-span-1 text-sm" required>
-                        <input type="number" id="input_price" placeholder="金額" class="border p-2.5 rounded-xl text-sm" required>
-                        <select id="input_cycle" class="border p-2.5 rounded-xl text-sm">
-                            <option value="monthly">每月付</option>
-                            <option value="yearly">每年付</option>
-                        </select>
-                        <select id="input_category" class="border p-2.5 rounded-xl text-sm">
-                            <option value="娛樂">🍿 娛樂</option>
-                            <option value="生活">🏠 生活</option>
-                            <option value="工作">💻 工作</option>
-                            <option value="其他">📦 其他</option>
-                        </select>
-                        <input type="number" id="input_date" placeholder="扣款日(1-31)" min="1" max="31" class="border p-2.5 rounded-xl text-sm" required>
-                        <button type="submit" class="col-span-2 md:col-span-5 bg-gray-900 text-white py-3 rounded-xl hover:bg-black transition font-bold mt-2">加入清單</button>
-                    </form>
-                </div>
-
-                <div class="card p-6">
-                    <h3 class="font-bold mb-4 text-gray-800">📋 訂閱清單 (按到期日排序)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="text-gray-400 text-xs uppercase tracking-wider border-b">
-                                    <th class="pb-4 font-semibold text-left">服務名稱</th>
-                                    <th class="pb-4 font-semibold text-center">類別</th>
-                                    <th class="pb-4 font-semibold text-center">扣款狀態</th>
-                                    <th class="pb-4 font-semibold text-right">月均費用</th>
-                                    <th class="pb-4 font-semibold text-right">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sub-list" class="divide-y divide-gray-100">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div class="card p-6 flex flex-col items-center">
-                    <h3 class="font-bold mb-6 text-gray-800 w-full text-left">📊 支出分佈 (類別)</h3>
-                    <div class="w-full px-4">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="hidden min-h-screen p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div class="animate-fade-in">
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2" id="welcome-text">
+                        歡迎回來 👋
+                    </h1>
+                    <span id="user-email" class="text-white/70 text-sm"></span>
                 </div>
                 
-                <div id="saving-tip" class="card p-6 bg-yellow-50 border border-yellow-100 hidden">
-                    <h4 class="text-yellow-800 font-bold mb-2">💡 省錢小提示</h4>
-                    <p id="tip-content" class="text-yellow-700 text-sm"></p>
+                <div class="flex gap-3 animate-slide-in">
+                    <button onclick="toggleDarkMode()" class="glass-card p-3 hover:scale-105 transition-transform">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                    <select id="lang-selector" onchange="changeLang()" class="glass-card px-4 py-2 text-sm font-semibold border-0 cursor-pointer">
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="pt">Português</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="th">ภาษาไทย</option>
+                    </select>
+                    <button onclick="logout()" class="glass-card px-6 py-2 text-red-500 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition" id="logout-btn">
+                        登出
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6 gradient-primary text-white stat-card relative overflow-hidden">
+                    <div class="absolute top-0 right-0 text-8xl opacity-10">💰</div>
+                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-monthly">每月總支出</p>
+                    <h2 id="total-monthly" class="text-3xl md:text-4xl font-bold">NT$ 0</h2>
+                    <p class="text-white/70 text-xs mt-2">已轉換為台幣</p>
+                </div>
+                
+                <div class="glass-card p-6 gradient-success text-white stat-card relative overflow-hidden">
+                    <div class="absolute top-0 right-0 text-8xl opacity-10">📈</div>
+                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-yearly">年度累積預算</p>
+                    <h2 id="total-yearly" class="text-3xl md:text-4xl font-bold">NT$ 0</h2>
+                    <p class="text-white/70 text-xs mt-2">12個月預估</p>
+                </div>
+                
+                <div class="glass-card p-6 gradient-warning text-white stat-card relative overflow-hidden">
+                    <div class="absolute top-0 right-0 text-8xl opacity-10">⚡</div>
+                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-active">啟用中服務</p>
+                    <h2 id="sub-count" class="text-3xl md:text-4xl font-bold">0</h2>
+                    <p class="text-white/70 text-xs mt-2">訂閱管理中</p>
+                </div>
+                
+                <div class="glass-card p-6 gradient-info text-white stat-card relative overflow-hidden">
+                    <div class="absolute top-0 right-0 text-8xl opacity-10">🔔</div>
+                    <p class="text-white/90 text-sm font-medium mb-2" id="stat-upcoming">即將扣款</p>
+                    <h2 id="upcoming-count" class="text-3xl md:text-4xl font-bold">0</h2>
+                    <p class="text-white/70 text-xs mt-2">7天內到期</p>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Add Subscription Form -->
+                    <div class="glass-card p-6 md:p-8 animate-fade-in">
+                        <h3 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                            ✨ 新增訂閱服務
+                        </h3>
+                        
+                        <form id="sub-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">服務名稱</label>
+                                    <input type="text" id="name" placeholder="Netflix, Spotify..." 
+                                           class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">分類</label>
+                                    <select id="category" class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
+                                        <option value="娛樂">🎬 娛樂</option>
+                                        <option value="音樂">🎵 音樂</option>
+                                        <option value="雲端">☁️ 雲端儲存</option>
+                                        <option value="軟體">💻 軟體工具</option>
+                                        <option value="健身">💪 健身運動</option>
+                                        <option value="教育">📚 線上學習</option>
+                                        <option value="新聞">📰 新聞媒體</option>
+                                        <option value="其他">📦 其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">幣別</label>
+                                    <select id="input_currency" class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
+                                        <option value="TWD">TWD</option>
+                                        <option value="USD">USD</option>
+                                        <option value="JPY">JPY</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="HKD">HKD</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">金額</label>
+                                    <input type="number" id="input_price" placeholder="299" step="0.01"
+                                           class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">週期</label>
+                                    <select id="input_cycle" class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
+                                        <option value="monthly">每月</option>
+                                        <option value="yearly">每年</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">扣款日</label>
+                                    <input type="number" id="input_date" placeholder="15" min="1" max="31"
+                                           class="w-full border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                                ➕ 新增訂閱
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Search & Filter -->
+                    <div class="glass-card p-6">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <input type="text" id="search-input" placeholder="🔍 搜尋服務名稱..." 
+                                   class="flex-1 border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all"
+                                   oninput="filterList()">
+                            
+                            <select id="filter-category" onchange="filterList()" 
+                                    class="border-2 border-gray-200 dark:border-gray-700 p-3 rounded-xl transition-all">
+                                <option value="">所有分類</option>
+                                <option value="娛樂">🎬 娛樂</option>
+                                <option value="音樂">🎵 音樂</option>
+                                <option value="雲端">☁️ 雲端儲存</option>
+                                <option value="軟體">💻 軟體工具</option>
+                                <option value="健身">💪 健身運動</option>
+                                <option value="教育">📚 線上學習</option>
+                                <option value="新聞">📰 新聞媒體</option>
+                                <option value="其他">📦 其他</option>
+                            </select>
+                            
+                            <button onclick="exportToCSV()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap">
+                                📥 匯出 CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Subscription List -->
+                    <div class="glass-card p-6 md:p-8 animate-fade-in">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                                📋 訂閱清單
+                            </h3>
+                            <span class="text-sm text-gray-500 dark:text-gray-400" id="list-count">共 0 項</span>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-gray-500 dark:text-gray-400 border-b-2 border-gray-200 dark:border-gray-700 text-xs uppercase tracking-wider">
+                                        <th class="pb-4 font-bold text-left">狀態</th>
+                                        <th class="pb-4 font-bold text-left" id="th-name">服務</th>
+                                        <th class="pb-4 font-bold text-center" id="th-category">分類</th>
+                                        <th class="pb-4 font-bold text-center" id="th-cycle">週期</th>
+                                        <th class="pb-4 font-bold text-center" id="th-next">下次扣款</th>
+                                        <th class="pb-4 font-bold text-right" id="th-cost">月均費用</th>
+                                        <th class="pb-4 font-bold text-right">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sub-list" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    
+                    <!-- Upcoming Payments -->
+                    <div class="glass-card p-6 animate-slide-in">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                            🔔 即將扣款
+                        </h3>
+                        <div id="upcoming-list" class="space-y-3">
+                            <p class="text-gray-400 text-sm text-center py-4">暫無即將到期的訂閱</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="glass-card p-6 animate-slide-in" style="animation-delay: 0.1s;">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">📊 支出分析</h3>
+                            <select id="chart-type" onchange="updateChartType()" class="text-xs px-3 py-1 rounded-lg border-2 border-gray-200 dark:border-gray-700">
+                                <option value="doughnut">圓餅圖</option>
+                                <option value="bar">柱狀圖</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="glass-card p-6 animate-slide-in" style="animation-delay: 0.2s;">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">💡 快速統計</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400 text-sm">最高單項支出</span>
+                                <span id="highest-sub" class="font-bold text-gray-800 dark:text-gray-100">-</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400 text-sm">平均每月支出</span>
+                                <span id="avg-monthly" class="font-bold text-gray-800 dark:text-gray-100">NT$ 0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400 text-sm">最常用分類</span>
+                                <span id="top-category" class="font-bold text-gray-800 dark:text-gray-100">-</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,9 +573,365 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxZXFqd3VrZmtkbHV3amNoeWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDA1OTIsImV4cCI6MjA5MzU3NjU5Mn0.tO3qfj5DnnK-U2uHxVWLcrCfpyXsqzBeC29Pezi4Z00";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let myChart;
-        let user;
+        // 匯率設定
+        const exchangeRates = { 
+            TWD: 1, 
+            USD: 32.5, 
+            JPY: 0.21, 
+            EUR: 35.2, 
+            GBP: 40.5, 
+            HKD: 4.2 
+        };
 
+        // 語系設定
+        const i18n = {
+            "zh-TW": {
+                welcome: "歡迎回來 👋",
+                logout: "登出",
+                statMonthly: "每月總支出",
+                statYearly: "年度累積預算",
+                statActive: "啟用中服務",
+                statUpcoming: "即將扣款",
+                formTitle: "✨ 新增訂閱服務",
+                listTitle: "📋 訂閱清單",
+                thName: "服務",
+                thCategory: "分類",
+                thCycle: "週期",
+                thNext: "下次扣款",
+                thCost: "月均費用",
+                addBtn: "➕ 新增訂閱",
+                monthly: "每月",
+                yearly: "每年",
+                daysLeft: "天後",
+                today: "今日扣款",
+                tomorrow: "明日",
+                loginBtn: "使用 Google 帳號登入",
+                authSubtitle: "智能管理你的每一筆訂閱",
+                authFooter: "安全、快速、無廣告"
+            },
+            "zh-CN": {
+                welcome: "欢迎回来 👋",
+                logout: "登出",
+                statMonthly: "每月总支出",
+                statYearly: "年度累积预算",
+                statActive: "启用中服务",
+                statUpcoming: "即将扣款",
+                formTitle: "✨ 新增订阅服务",
+                listTitle: "📋 订阅清单",
+                thName: "服务",
+                thCategory: "分类",
+                thCycle: "周期",
+                thNext: "下次扣款",
+                thCost: "月均费用",
+                addBtn: "➕ 新增订阅",
+                monthly: "每月",
+                yearly: "每年",
+                daysLeft: "天后",
+                today: "今日扣款",
+                tomorrow: "明日",
+                loginBtn: "使用 Google 账号登录",
+                authSubtitle: "智能管理你的每一笔订阅",
+                authFooter: "安全、快速、无广告"
+            },
+            "en": {
+                welcome: "Welcome Back 👋",
+                logout: "Logout",
+                statMonthly: "Monthly Total",
+                statYearly: "Yearly Budget",
+                statActive: "Active Services",
+                statUpcoming: "Upcoming Bills",
+                formTitle: "✨ Add Subscription",
+                listTitle: "📋 Subscription List",
+                thName: "Service",
+                thCategory: "Category",
+                thCycle: "Cycle",
+                thNext: "Next Bill",
+                thCost: "Avg/Month",
+                addBtn: "➕ Add Subscription",
+                monthly: "Monthly",
+                yearly: "Yearly",
+                daysLeft: "days left",
+                today: "Today",
+                tomorrow: "Tomorrow",
+                loginBtn: "Sign in with Google",
+                authSubtitle: "Smart subscription management made easy",
+                authFooter: "Secure, Fast, Ad-free"
+            },
+            "ja": {
+                welcome: "おかえりなさい 👋",
+                logout: "ログアウト",
+                statMonthly: "月額合計",
+                statYearly: "年間予算",
+                statActive: "有効なサービス",
+                statUpcoming: "近日請求",
+                formTitle: "✨ サブスク追加",
+                listTitle: "📋 サブスク一覧",
+                thName: "サービス",
+                thCategory: "カテゴリー",
+                thCycle: "周期",
+                thNext: "次回請求",
+                thCost: "月平均",
+                addBtn: "➕ サブスク追加",
+                monthly: "月額",
+                yearly: "年額",
+                daysLeft: "日後",
+                today: "今日請求",
+                tomorrow: "明日",
+                loginBtn: "Googleでログイン",
+                authSubtitle: "サブスクをスマートに管理",
+                authFooter: "安全・高速・広告なし"
+            },
+            "ko": {
+                welcome: "환영합니다 👋",
+                logout: "로그아웃",
+                statMonthly: "월 총액",
+                statYearly: "연간 예산",
+                statActive: "활성 서비스",
+                statUpcoming: "곧 청구됨",
+                formTitle: "✨ 구독 추가",
+                listTitle: "📋 구독 목록",
+                thName: "서비스",
+                thCategory: "카테고리",
+                thCycle: "주기",
+                thNext: "다음 청구",
+                thCost: "월 평균",
+                addBtn: "➕ 구독 추가",
+                monthly: "월간",
+                yearly: "연간",
+                daysLeft: "일 후",
+                today: "오늘 청구",
+                tomorrow: "내일",
+                loginBtn: "Google로 로그인",
+                authSubtitle: "구독을 스마트하게 관리하세요",
+                authFooter: "안전하고 빠르며 광고 없음"
+            },
+            "es": {
+                welcome: "Bienvenido 👋",
+                logout: "Cerrar sesión",
+                statMonthly: "Total Mensual",
+                statYearly: "Presupuesto Anual",
+                statActive: "Servicios Activos",
+                statUpcoming: "Próximos Pagos",
+                formTitle: "✨ Añadir Suscripción",
+                listTitle: "📋 Lista de Suscripciones",
+                thName: "Servicio",
+                thCategory: "Categoría",
+                thCycle: "Ciclo",
+                thNext: "Próximo Pago",
+                thCost: "Promedio/Mes",
+                addBtn: "➕ Añadir Suscripción",
+                monthly: "Mensual",
+                yearly: "Anual",
+                daysLeft: "días",
+                today: "Hoy",
+                tomorrow: "Mañana",
+                loginBtn: "Iniciar sesión con Google",
+                authSubtitle: "Gestiona tus suscripciones inteligentemente",
+                authFooter: "Seguro, Rápido, Sin anuncios"
+            },
+            "fr": {
+                welcome: "Bienvenue 👋",
+                logout: "Déconnexion",
+                statMonthly: "Total Mensuel",
+                statYearly: "Budget Annuel",
+                statActive: "Services Actifs",
+                statUpcoming: "Paiements à Venir",
+                formTitle: "✨ Ajouter un Abonnement",
+                listTitle: "📋 Liste des Abonnements",
+                thName: "Service",
+                thCategory: "Catégorie",
+                thCycle: "Cycle",
+                thNext: "Prochain Paiement",
+                thCost: "Moyenne/Mois",
+                addBtn: "➕ Ajouter un Abonnement",
+                monthly: "Mensuel",
+                yearly: "Annuel",
+                daysLeft: "jours",
+                today: "Aujourd'hui",
+                tomorrow: "Demain",
+                loginBtn: "Se connecter avec Google",
+                authSubtitle: "Gérez vos abonnements intelligemment",
+                authFooter: "Sécurisé, Rapide, Sans publicité"
+            },
+            "de": {
+                welcome: "Willkommen zurück 👋",
+                logout: "Abmelden",
+                statMonthly: "Monatliche Summe",
+                statYearly: "Jahresbudget",
+                statActive: "Aktive Dienste",
+                statUpcoming: "Kommende Zahlungen",
+                formTitle: "✨ Abonnement hinzufügen",
+                listTitle: "📋 Abonnementliste",
+                thName: "Dienst",
+                thCategory: "Kategorie",
+                thCycle: "Zyklus",
+                thNext: "Nächste Zahlung",
+                thCost: "Durchschnitt/Monat",
+                addBtn: "➕ Abonnement hinzufügen",
+                monthly: "Monatlich",
+                yearly: "Jährlich",
+                daysLeft: "Tage",
+                today: "Heute",
+                tomorrow: "Morgen",
+                loginBtn: "Mit Google anmelden",
+                authSubtitle: "Verwalten Sie Ihre Abonnements intelligent",
+                authFooter: "Sicher, Schnell, Werbefrei"
+            },
+            "pt": {
+                welcome: "Bem-vindo 👋",
+                logout: "Sair",
+                statMonthly: "Total Mensal",
+                statYearly: "Orçamento Anual",
+                statActive: "Serviços Ativos",
+                statUpcoming: "Pagamentos Próximos",
+                formTitle: "✨ Adicionar Assinatura",
+                listTitle: "📋 Lista de Assinaturas",
+                thName: "Serviço",
+                thCategory: "Categoria",
+                thCycle: "Ciclo",
+                thNext: "Próximo Pagamento",
+                thCost: "Média/Mês",
+                addBtn: "➕ Adicionar Assinatura",
+                monthly: "Mensal",
+                yearly: "Anual",
+                daysLeft: "dias",
+                today: "Hoje",
+                tomorrow: "Amanhã",
+                loginBtn: "Entrar com Google",
+                authSubtitle: "Gerencie suas assinaturas de forma inteligente",
+                authFooter: "Seguro, Rápido, Sem anúncios"
+            },
+            "vi": {
+                welcome: "Chào mừng trở lại 👋",
+                logout: "Đăng xuất",
+                statMonthly: "Tổng Hàng Tháng",
+                statYearly: "Ngân Sách Năm",
+                statActive: "Dịch Vụ Hoạt Động",
+                statUpcoming: "Sắp Thanh Toán",
+                formTitle: "✨ Thêm Đăng Ký",
+                listTitle: "📋 Danh Sách Đăng Ký",
+                thName: "Dịch Vụ",
+                thCategory: "Danh Mục",
+                thCycle: "Chu Kỳ",
+                thNext: "Thanh Toán Tiếp",
+                thCost: "TB/Tháng",
+                addBtn: "➕ Thêm Đăng Ký",
+                monthly: "Hàng Tháng",
+                yearly: "Hàng Năm",
+                daysLeft: "ngày",
+                today: "Hôm Nay",
+                tomorrow: "Ngày Mai",
+                loginBtn: "Đăng nhập bằng Google",
+                authSubtitle: "Quản lý đăng ký thông minh",
+                authFooter: "An Toàn, Nhanh, Không quảng cáo"
+            },
+            "th": {
+                welcome: "ยินดีต้อนรับกลับ 👋",
+                logout: "ออกจากระบบ",
+                statMonthly: "ยอดรวมรายเดือน",
+                statYearly: "งบประมาณรายปี",
+                statActive: "บริการที่ใช้งาน",
+                statUpcoming: "กำลังจะครบกำหนด",
+                formTitle: "✨ เพิ่มการสมัครสมาชิก",
+                listTitle: "📋 รายการสมัครสมาชิก",
+                thName: "บริการ",
+                thCategory: "หมวดหมู่",
+                thCycle: "รอบ",
+                thNext: "ชำระครั้งต่อไป",
+                thCost: "เฉลี่ย/เดือน",
+                addBtn: "➕ เพิ่มการสมัครสมาชิก",
+                monthly: "รายเดือน",
+                yearly: "รายปี",
+                daysLeft: "วัน",
+                today: "วันนี้",
+                tomorrow: "พรุ่งนี้",
+                loginBtn: "เข้าสู่ระบบด้วย Google",
+                authSubtitle: "จัดการการสมัครสมาชิกอย่างชาญฉลาด",
+                authFooter: "ปลอดภัย, รวดเร็ว, ไม่มีโฆษณา"
+            }
+        };
+
+        let currentLang = 'zh-TW';
+        let myChart, user, allSubscriptions = [];
+
+        // Initialize language preference from localStorage
+        function initLanguage() {
+            const savedLang = localStorage.getItem('preferredLang') || 'zh-TW';
+            currentLang = savedLang;
+            
+            // Update both selectors
+            const authSelector = document.getElementById('auth-lang-selector');
+            const dashSelector = document.getElementById('lang-selector');
+            
+            if (authSelector) authSelector.value = savedLang;
+            if (dashSelector) dashSelector.value = savedLang;
+            
+            updateAuthLanguage();
+        }
+
+        // Change language on auth page
+        function changeAuthLang() {
+            currentLang = document.getElementById('auth-lang-selector').value;
+            localStorage.setItem('preferredLang', currentLang);
+            updateAuthLanguage();
+        }
+
+        // Update auth page language
+        function updateAuthLanguage() {
+            const t = i18n[currentLang] || i18n['zh-TW']; // Fallback to zh-TW if language not found
+            const authSubtitle = document.getElementById('auth-subtitle');
+            const loginBtnText = document.getElementById('login-btn-text');
+            const authFooter = document.getElementById('auth-footer');
+            
+            if (authSubtitle) authSubtitle.innerText = t.authSubtitle;
+            if (loginBtnText) loginBtnText.innerText = t.loginBtn;
+            if (authFooter) authFooter.innerText = t.authFooter;
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.getElementById('body-main').classList.toggle('dark-mode');
+            const icon = document.getElementById('theme-icon');
+            icon.textContent = document.getElementById('body-main').classList.contains('dark-mode') ? '☀️' : '🌙';
+            
+            // Save preference
+            localStorage.setItem('darkMode', document.getElementById('body-main').classList.contains('dark-mode'));
+        }
+
+        // Language Change
+        function changeLang() {
+            currentLang = document.getElementById('lang-selector').value;
+            localStorage.setItem('preferredLang', currentLang);
+            updateUILanguage();
+            loadData();
+        }
+
+        function updateUILanguage() {
+            const t = i18n[currentLang] || i18n['zh-TW']; // Fallback to zh-TW if language not found
+            
+            // Dashboard elements
+            const elements = {
+                'welcome-text': t.welcome,
+                'logout-btn': t.logout,
+                'stat-monthly': t.statMonthly,
+                'stat-yearly': t.statYearly,
+                'stat-active': t.statActive,
+                'stat-upcoming': t.statUpcoming,
+                'th-name': t.thName,
+                'th-category': t.thCategory,
+                'th-cycle': t.thCycle,
+                'th-next': t.thNext,
+                'th-cost': t.thCost,
+                'add-btn': t.addBtn
+            };
+            
+            Object.keys(elements).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = elements[id];
+            });
+        }
+
+        // Check User Authentication
         async function checkUser() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
@@ -121,7 +939,12 @@
                 showDashboard();
                 loadData();
             } else {
-                showAuth();
+                document.getElementById('auth-section').classList.remove('hidden');
+            }
+            
+            // Load dark mode preference
+            if (localStorage.getItem('darkMode') === 'true') {
+                toggleDarkMode();
             }
         }
 
@@ -129,116 +952,372 @@
             document.getElementById('auth-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
             document.getElementById('user-email').innerText = user.email;
+            
+            // Sync language selector with saved preference
+            document.getElementById('lang-selector').value = currentLang;
+            updateUILanguage();
         }
 
-        function showAuth() { document.getElementById('auth-section').classList.remove('hidden'); }
+        async function login() {
+            await _supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+        }
 
-        async function login() { await _supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
-        async function logout() { await _supabase.auth.signOut(); location.reload(); }
+        async function logout() {
+            await _supabase.auth.signOut();
+            location.reload();
+        }
 
+        // Load Data
         async function loadData() {
-            const { data, error } = await _supabase.from('subscriptions').select('*');
-            if (error) return;
+            const { data, error } = await _supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', user.id);
+                
+            if (error) {
+                console.error('Error loading data:', error);
+                return;
+            }
 
-            // 計算剩餘天數並排序
             const today = new Date().getDate();
-            const sortedData = data.map(item => {
+            allSubscriptions = data.map(item => {
+                const currency = item.category.match(/TWD|USD|JPY|EUR|GBP|HKD/);
+                const actualCurrency = currency ? currency[0] : 'TWD';
+                const actualCategory = item.category.replace(/TWD|USD|JPY|EUR|GBP|HKD/, '').trim();
+                
+                const twdPrice = item.price * (exchangeRates[actualCurrency] || 1);
                 let daysLeft = item.billing_date - today;
-                if (daysLeft < 0) {
-                    const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-                    daysLeft = (lastDayOfMonth - today) + parseInt(item.billing_date);
-                }
-                return { ...item, daysLeft };
+                if (daysLeft < 0) daysLeft += 30;
+                
+                return { 
+                    ...item, 
+                    twdPrice, 
+                    daysLeft,
+                    actualCurrency,
+                    actualCategory: actualCategory || '其他'
+                };
             }).sort((a, b) => a.daysLeft - b.daysLeft);
 
-            renderList(sortedData);
-            updateStats(sortedData);
+            filterList();
+            updateStats(allSubscriptions);
+            updateUpcomingList(allSubscriptions);
         }
 
+        // Add Subscription
         document.getElementById('sub-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const currency = document.getElementById('input_currency').value;
+            const category = document.getElementById('category').value;
+            
             const { error } = await _supabase.from('subscriptions').insert([{
                 name: document.getElementById('name').value,
                 price: parseFloat(document.getElementById('input_price').value),
                 cycle: document.getElementById('input_cycle').value,
-                category: document.getElementById('input_category').value,
+                category: `${category} ${currency}`,
                 billing_date: parseInt(document.getElementById('input_date').value),
                 user_id: user.id
             }]);
-
-            if (error) alert("錯誤: " + error.message);
-            else { document.getElementById('sub-form').reset(); loadData(); }
+            
+            if (error) {
+                alert('新增失敗: ' + error.message);
+            } else {
+                document.getElementById('sub-form').reset();
+                loadData();
+            }
         });
 
+        // Delete Subscription
         async function deleteSub(id) {
-            if (confirm('確定刪除？')) { await _supabase.from('subscriptions').delete().eq('id', id); loadData(); }
+            if (confirm('確定要刪除此訂閱嗎？')) {
+                await _supabase.from('subscriptions').delete().eq('id', id);
+                loadData();
+            }
         }
 
+        // Filter List
+        function filterList() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const categoryFilter = document.getElementById('filter-category').value;
+            
+            const filtered = allSubscriptions.filter(item => {
+                const matchSearch = item.name.toLowerCase().includes(searchTerm);
+                const matchCategory = !categoryFilter || item.actualCategory === categoryFilter;
+                return matchSearch && matchCategory;
+            });
+            
+            renderList(filtered);
+        }
+
+        // Render List
         function renderList(items) {
             const list = document.getElementById('sub-list');
+            const t = i18n[currentLang] || i18n['zh-TW']; // Fallback
+            
+            document.getElementById('list-count').innerText = `${currentLang.startsWith('zh') ? '共' : ''} ${items.length} ${currentLang.startsWith('zh') ? '項' : 'items'}`;
+            
+            if (items.length === 0) {
+                const noDataText = currentLang.startsWith('zh') ? '暫無訂閱資料' : 'No subscriptions';
+                list.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">${noDataText}</td></tr>`;
+                return;
+            }
+            
             list.innerHTML = items.map(item => {
-                const monthly = item.cycle === 'yearly' ? (item.price / 12).toFixed(0) : item.price;
-                const isUrgent = item.daysLeft <= 3;
+                const moTWD = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
+                const statusClass = item.daysLeft <= 3 ? 'status-warning' : 'status-active';
+                const urgencyClass = item.daysLeft <= 3 ? 'text-red-500 font-bold' : 'text-gray-500';
+                
+                let daysText = '';
+                if (item.daysLeft === 0) daysText = t.today;
+                else if (item.daysLeft === 1) daysText = t.tomorrow;
+                else daysText = `${item.daysLeft} ${t.daysLeft}`;
+                
                 return `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="py-5 font-bold text-gray-800">${item.name}</td>
-                        <td class="py-5 text-center"><span class="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-600">${item.category || '一般'}</span></td>
-                        <td class="py-5 text-center">
-                            <span class="${isUrgent ? 'text-red-500 font-bold' : 'text-gray-500'} text-sm">
-                                ${item.daysLeft === 0 ? '今日扣款' : item.daysLeft + ' 天後'}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all">
+                        <td class="py-4"><span class="${statusClass}"></span></td>
+                        <td class="py-4">
+                            <div class="font-bold text-gray-800 dark:text-gray-100">${item.name}</div>
+                            <div class="text-xs text-gray-400">${item.actualCurrency} ${item.price.toFixed(2)}</div>
+                        </td>
+                        <td class="py-4 text-center">
+                            <span class="badge bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-300">
+                                ${item.actualCategory}
                             </span>
                         </td>
-                        <td class="py-5 text-right font-bold text-gray-700">NT$ ${Math.round(monthly)}</td>
-                        <td class="py-5 text-right text-xl">
-                            <button onclick="deleteSub('${item.id}')" class="hover:opacity-50 text-gray-300">🗑️</button>
+                        <td class="py-4 text-center text-gray-600 dark:text-gray-300">${t[item.cycle]}</td>
+                        <td class="py-4 text-center ${urgencyClass}">${daysText}</td>
+                        <td class="py-4 text-right font-bold text-gray-800 dark:text-gray-100">
+                            NT$ ${Math.round(moTWD).toLocaleString()}
+                        </td>
+                        <td class="py-4 text-right">
+                            <button onclick="deleteSub('${item.id}')" 
+                                    class="text-gray-300 hover:text-red-500 transition-colors text-xl">
+                                🗑️
+                            </button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
+        // Update Stats
         function updateStats(items) {
-            let monthlyTotal = 0;
-            items.forEach(item => { monthlyTotal += item.cycle === 'yearly' ? (item.price / 12) : item.price; });
-
-            document.getElementById('total-monthly').innerText = `NT$ ${Math.round(monthlyTotal).toLocaleString()}`;
-            document.getElementById('total-yearly').innerText = `NT$ ${Math.round(monthlyTotal * 12).toLocaleString()}`;
+            let moTotal = 0;
+            let upcoming = 0;
+            
+            items.forEach(i => {
+                const monthlyAmount = i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
+                moTotal += monthlyAmount;
+                if (i.daysLeft <= 7) upcoming++;
+            });
+            
+            document.getElementById('total-monthly').innerText = `NT$ ${Math.round(moTotal).toLocaleString()}`;
+            document.getElementById('total-yearly').innerText = `NT$ ${Math.round(moTotal * 12).toLocaleString()}`;
             document.getElementById('sub-count').innerText = items.length;
-
-            // 省錢提示
+            document.getElementById('upcoming-count').innerText = upcoming;
+            
+            // Quick stats
             if (items.length > 0) {
-                const maxItem = items.reduce((prev, current) => (prev.price > current.price) ? prev : current);
-                document.getElementById('saving-tip').classList.remove('hidden');
-                document.getElementById('tip-content').innerText = `你的 ${maxItem.name} 是目前最貴的項目。如果砍掉它，每年能省下 NT$ ${Math.round(maxItem.cycle === 'monthly' ? maxItem.price * 12 : maxItem.price).toLocaleString()}！`;
+                const highest = items.reduce((max, item) => {
+                    const monthly = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
+                    return monthly > (max.monthly || 0) ? { name: item.name, monthly } : max;
+                }, {});
+                
+                document.getElementById('highest-sub').innerText = `${highest.name} (NT$ ${Math.round(highest.monthly).toLocaleString()})`;
+                document.getElementById('avg-monthly').innerText = `NT$ ${Math.round(moTotal / items.length).toLocaleString()}`;
+                
+                const categoryCount = {};
+                items.forEach(i => {
+                    categoryCount[i.actualCategory] = (categoryCount[i.actualCategory] || 0) + 1;
+                });
+                const topCat = Object.keys(categoryCount).reduce((a, b) => 
+                    categoryCount[a] > categoryCount[b] ? a : b
+                );
+                document.getElementById('top-category').innerText = topCat;
             }
-
+            
             updateChart(items);
         }
 
+        // Update Upcoming List
+        function updateUpcomingList(items) {
+            const upcoming = items.filter(i => i.daysLeft <= 7);
+            const list = document.getElementById('upcoming-list');
+            const t = i18n[currentLang] || i18n['zh-TW'];
+            
+            if (upcoming.length === 0) {
+                const noDataText = currentLang.startsWith('zh-TW') ? '暫無即將到期的訂閱' :
+                                   currentLang.startsWith('zh-CN') ? '暂无即将到期的订阅' :
+                                   currentLang === 'ja' ? '期限が近いサブスクはありません' :
+                                   currentLang === 'ko' ? '곧 만료되는 구독이 없습니다' :
+                                   'No upcoming bills';
+                list.innerHTML = `<p class="text-gray-400 text-sm text-center py-4">${noDataText}</p>`;
+                return;
+            }
+            
+            list.innerHTML = upcoming.map(item => {
+                const moTWD = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
+                const urgencyColor = item.daysLeft <= 3 ? 'border-red-200 bg-red-50 dark:bg-red-900/10' : 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10';
+                
+                let daysText = '';
+                if (item.daysLeft === 0) {
+                    daysText = t.today;
+                } else if (item.daysLeft === 1) {
+                    daysText = t.tomorrow;
+                } else {
+                    daysText = `${item.daysLeft} ${t.daysLeft}`;
+                }
+                
+                return `
+                    <div class="border-l-4 ${urgencyColor} p-3 rounded-r-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">${item.name}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    ${daysText}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">
+                                    NT$ ${Math.round(moTWD).toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Chart
         function updateChart(items) {
             const ctx = document.getElementById('categoryChart').getContext('2d');
-            const catData = items.reduce((acc, item) => {
-                const val = item.cycle === 'yearly' ? item.price / 12 : item.price;
-                acc[item.category] = (acc[item.category] || 0) + val;
+            const chartType = document.getElementById('chart-type').value;
+            
+            const chartData = items.reduce((acc, i) => {
+                const val = i.cycle === 'yearly' ? i.twdPrice / 12 : i.twdPrice;
+                acc[i.actualCategory] = (acc[i.actualCategory] || 0) + val;
                 return acc;
             }, {});
-
+            
             if (myChart) myChart.destroy();
+            
+            const isDark = document.getElementById('body-main').classList.contains('dark-mode');
+            
             myChart = new Chart(ctx, {
-                type: 'doughnut',
+                type: chartType,
                 data: {
-                    labels: Object.keys(catData),
+                    labels: Object.keys(chartData),
                     datasets: [{
-                        data: Object.values(catData),
-                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        data: Object.values(chartData),
+                        backgroundColor: [
+                            '#0ea5e9',
+                            '#06b6d4',
+                            '#10b981',
+                            '#6366f1',
+                            '#8b5cf6',
+                            '#f59e0b',
+                            '#ec4899',
+                            '#14b8a6'
+                        ],
                         borderWidth: 0,
-                        hoverOffset: 10
+                        borderRadius: chartType === 'bar' ? 8 : 0
                     }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }, cutout: '70%' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                usePointStyle: true,
+                                padding: 15,
+                                color: isDark ? '#e0e0e0' : '#374151',
+                                font: { size: 12, family: 'Outfit' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(30, 30, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            titleColor: isDark ? '#e0e0e0' : '#111827',
+                            bodyColor: isDark ? '#b0b0b0' : '#374151',
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` NT$ ${Math.round(context.parsed).toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: chartType === 'doughnut' ? '70%' : 0,
+                    scales: chartType === 'bar' ? {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                color: isDark ? '#909090' : '#6b7280',
+                                callback: function(value) {
+                                    return 'NT$ ' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: isDark ? '#909090' : '#6b7280' }
+                        }
+                    } : {}
+                }
             });
         }
 
+        function updateChartType() {
+            updateChart(allSubscriptions);
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            if (allSubscriptions.length === 0) {
+                alert('沒有資料可以匯出');
+                return;
+            }
+            
+            const headers = ['服務名稱', '分類', '金額', '幣別', '週期', '扣款日', '月均費用(TWD)'];
+            const rows = allSubscriptions.map(item => {
+                const monthly = item.cycle === 'yearly' ? item.twdPrice / 12 : item.twdPrice;
+                return [
+                    item.name,
+                    item.actualCategory,
+                    item.price,
+                    item.actualCurrency,
+                    item.cycle === 'monthly' ? '每月' : '每年',
+                    item.billing_date,
+                    Math.round(monthly)
+                ];
+            });
+            
+            let csvContent = '\uFEFF'; // BOM for UTF-8
+            csvContent += headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `訂閱清單_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // Initialize
+        initLanguage();
         checkUser();
     </script>
 </body>
